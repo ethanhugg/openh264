@@ -6,8 +6,8 @@ branches:
   except:
     - gh-pages
 before_install:
- - sudo brew update
- - sudo brew install nasm
+ - brew update
+ - brew install nasm
 install: make gtest-bootstrap
 script: make && make test
 
