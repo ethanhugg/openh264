@@ -9,5 +9,5 @@ before_install:
  - brew update
  - brew install nasm
 install: make gtest-bootstrap
-script: make && make test
+script: make && make test && make clean && make ENABLE64BIT=Yes && make test
 
