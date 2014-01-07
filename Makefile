@@ -79,7 +79,7 @@ clean:
 	echo $(HAVE_GTEST)
 
 gtest-bootstrap:
-	svn co https://googletest.googlecode.com/svn/trunk/ gtest
+	svn co http://googletest.googlecode.com/svn/trunk/ gtest
 
 test:
 	./codec_unittest
