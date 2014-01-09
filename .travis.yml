@@ -1,6 +1,5 @@
 language: objective-c 
 compiler:
-  - gcc
   - clang
 branches:
   except:
@@ -9,5 +8,7 @@ before_install:
  - brew update
  - brew install nasm
 install: make gtest-bootstrap
-script: make && make test && make clean && make ENABLE64BIT=Yes && make test && make clean && make BUILDTYPE=Release && make test && make BUILDTYPE=Release clean && make ENABLE64BIT=Yes BUILDTYPE=Release && make test
+# libssl is not multiarch so we are building 64bit
+# and then installing the 32bit version
+script: make -B ENABLE64BIT=Yes && make test && make -B ENABLE64BIT=Yes BUILDTYPE=Release && make test && sudo apt-get install -qq libssl-dev:i386 && make -B && make test && make -B BUILDTYPE=Release && make test
 

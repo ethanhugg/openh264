@@ -3,7 +3,6 @@ DECODER_SRCDIR=codec/decoder
 DECODER_CPP_SRCS=\
 	$(DECODER_SRCDIR)/./core/src/au_parser.cpp\
 	$(DECODER_SRCDIR)/./core/src/bit_stream.cpp\
-	$(DECODER_SRCDIR)/./core/src/cpu.cpp\
 	$(DECODER_SRCDIR)/./core/src/deblocking.cpp\
 	$(DECODER_SRCDIR)/./core/src/decode_mb_aux.cpp\
 	$(DECODER_SRCDIR)/./core/src/decode_slice.cpp\
