@@ -1,4 +1,3 @@
-#comment
 dd if=./testbin/test_vd_1d.264 of=header.264 bs=1K count=10
 dd if=/dev/urandom of=random.264 bs=1M count=1
 cat header.264 > test.264
