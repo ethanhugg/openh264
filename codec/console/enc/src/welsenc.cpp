@@ -50,11 +50,7 @@
 //#include "layered_pic_buffer.h"
 #include "read_config.h"
 
-#if defined(MACOS)
-#include "bundlewelsenc.h"
-#else
 #include "typedefs.h"
-#endif//MACOS
 
 #ifdef _MSC_VER
 #include <io.h>     /* _setmode() */
@@ -968,7 +964,7 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
   sSvcParam.sDependencyLayers[sSvcParam.iNumDependencyLayer - 1].iFrameHeight =
     WELS_ALIGN(sSvcParam.sDependencyLayers[sSvcParam.iNumDependencyLayer - 1].iActualHeight, MB_HEIGHT_LUMA);
 
-  if (cmResultSuccess != pPtrEnc->Initialize ((void*)&sSvcParam, INIT_TYPE_CONFIG_BASED)) {	// SVC encoder initialization
+  if (cmResultSuccess != pPtrEnc->Initialize2 ((void*)&sSvcParam, INIT_TYPE_CONFIG_BASED)) {	// SVC encoder initialization
     fprintf (stderr, "SVC encoder Initialize failed\n");
     iRet = 1;
     goto INSIDE_MEM_FREE;
@@ -1098,7 +1094,7 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
 
     // To encoder this frame
     iStart	= WelsTime();
-    int iEncFrames = pPtrEnc->EncodeFrame (const_cast<const SSourcePicture**> (pSrcPicList), nSpatialLayerNum, &sFbi);
+    int iEncFrames = pPtrEnc->EncodeFrame2 (const_cast<const SSourcePicture**> (pSrcPicList), nSpatialLayerNum, &sFbi);
     iTotal += WelsTime() - iStart;
 
     // fixed issue in case dismatch source picture introduced by frame skipped, 1/12/2010
@@ -1242,22 +1238,13 @@ void LockToSingleCore() {
 
 long CreateSVCEncHandle (ISVCEncoder** ppEncoder) {
   long ret = 0;
-#if defined(MACOS)
-  ret = WelsEncBundleLoad();
-  WelsEncBundleCreateEncoder (ppEncoder);
-#else
   ret = CreateSVCEncoder (ppEncoder);
-#endif//MACOS
   return ret;
 }
 
 void DestroySVCEncHandle (ISVCEncoder* pEncoder) {
   if (pEncoder) {
-#if defined(MACOS)
-    WelsEncBundleDestroyEncoder (pEncoder);
-#else
     DestroySVCEncoder (pEncoder);
-#endif//MACOS
 
   }
 }
@@ -1265,11 +1252,7 @@ void DestroySVCEncHandle (ISVCEncoder* pEncoder) {
 /****************************************************************************
  * main:
  ****************************************************************************/
-#if (defined(MACOS))
-int main_demo (int argc, char** argv)
-#else
 int main (int argc, char** argv)
-#endif
 {
   ISVCEncoder* pSVCEncoder	= NULL;
   FILE* pFileOut					= NULL;

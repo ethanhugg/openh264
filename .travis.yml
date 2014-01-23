@@ -1,9 +1,6 @@
 language: objective-c 
 compiler:
   - clang
-branches:
-  except:
-    - gh-pages
 before_install:
  - brew update
  - brew install nasm
