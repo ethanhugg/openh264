@@ -76,7 +76,6 @@ const uint8_t g_kuiRefTemporalIdx[MAX_TEMPORAL_LEVEL][MAX_GOP_SIZE] = {
   {  0,  0, }, // 1
   {  0,  0,  0,  1, }, // 2
   {  0,  0,  0,  2,  0,  1,  1,  2, }, // 3
-  {  0,  0,  0,  3,  0,  2,  2,  3,  0,  1,  1,  3,  1,  2,  2,  3 }  // 4
 };
 
 const int32_t g_kiPixMapSizeInBits = sizeof (uint8_t) * 8;
@@ -453,8 +452,6 @@ int32_t CWelsPreProcess::SingleLayerPreprocess (void* pCtx, const SSourcePicture
       // spatial layer is able to encode indeed
       if ((iTemporalId != INVALID_TEMPORAL_ID)) {
         // down sampling performed
-        if (NULL == pSrcPic)
-          return -1;
 
         pDstPic	= pEncCtx->pSpatialPic[iDependencyId][iPicturePos];	// small
         iShrinkWidth = pScaledPicture->iScaledWidth[iDependencyId];
