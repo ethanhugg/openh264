@@ -106,7 +106,7 @@ gtest-bootstrap:
 	svn co http://googletest.googlecode.com/svn/trunk/ gtest
 
 ifeq ($(HAVE_GTEST),Yes)
-test: codec_unittest
+test: codec_unittest$(EXEEXT)
 	./codec_unittest
 else
 test:
