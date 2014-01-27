@@ -266,8 +266,12 @@ int32_t WelsFwrite (const void_t* kpBuffer, int32_t iSize, int32_t iCount, WelsF
   return fwrite (kpBuffer, iSize, iCount, pFp);
 }
 
-uint16_t WelsGetMillsecond (const SWelsTime* kpTp) {
+uint16_t WelsGetMillisecond (const SWelsTime* kpTp) {
   return kpTp->millitm;
+}
+
+int32_t WelsFseek (WelsFileHandle* fp, int32_t offset, int32_t origin) {
+  return fseek(fp, offset, origin);
 }
 
 int32_t WelsFflush (WelsFileHandle* pFp) {

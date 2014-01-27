@@ -90,7 +90,7 @@ int32_t                WelsFflush (WelsFileHandle* fp);
 
 int32_t                WelsGetTimeOfDay (SWelsTime* tp);
 int32_t                WelsStrftime (str_t* buffer, int32_t size, const str_t* format, const SWelsTime* tp);
-uint16_t               WelsGetMillsecond (const SWelsTime* tp);
+uint16_t               WelsGetMillisecond (const SWelsTime* tp);
 
 
 #ifdef __cplusplus
@@ -120,7 +120,7 @@ uint16_t               WelsGetMillsecond (const SWelsTime* tp);
 
 #if (defined(WIN32) && defined(_MSC_VER) && (_MSC_VER<1500)) || defined(__GNUC__)
 
-static __inline int wels_strncpy_s (char* dest, int dmax, const char* src, int slen) {
+static inline int wels_strncpy_s (char* dest, int dmax, const char* src, int slen) {
 int orig_dmax;
 char* orig_dest;
 const char* overlap_bumper;
@@ -260,7 +260,7 @@ if (dest < src) {
 return (ESNOSPC);
 }
 
-static __inline int wels_strcat_s (char* dest, int dmax, const char* src) {
+static inline int wels_strcat_s (char* dest, int dmax, const char* src) {
   int orig_dmax;
   char* orig_dest;
   const char* overlap_bumper;
@@ -387,7 +387,7 @@ static __inline int wels_strcat_s (char* dest, int dmax, const char* src) {
   return (ESNOSPC);
 }
 
-static __inline int wels_strnlen_s (const char* dest, int dmax) {
+static inline int wels_strnlen_s (const char* dest, int dmax) {
   int count;
 
   if (dest == NULL) {
@@ -420,31 +420,20 @@ static __inline int wels_strnlen_s (const char* dest, int dmax) {
 
 #if defined(WIN32) && defined(_MSC_VER)
 #if _MSC_VER >= 1500	// VS2008
-#define SNPRINTF	_snprintf_s
-#define LOCALTIME	localtime_s
-#define FTIME		_ftime_s
 #define STRNCPY		strncpy_s
 #define STRCAT		strcat_s
 #define STRNLEN		strnlen_s
-#define VSPRINTF	vsprintf_s
 #else	// mainly for VC6
-#define SNPRINTF	_snprintf
-#define LOCALTIME	localtime
-#define FTIME		_ftime
 #define STRNCPY		wels_strncpy_s	// override s.t.r.n.c.p.y here for safe
 #define STRCAT		wels_strcat_s	// override s.t.r.c.a.t here for safe
 #define STRNLEN		wels_strnlen_s	// override s.t.r.n.l.e.n here for safe
-#define VSPRINTF	vsprintf
 #endif//_MSC_VER >= 1500
 
 #else//__GNUC__
 
-#define SNPRINTF	snprintf
-#define LOCALTIME	localtime
 #define STRNCPY		wels_strncpy_s	// override s.t.r.n.c.p.y here for safe
 #define STRCAT		wels_strcat_s	// override s.t.r.c.a.t here for safe
 #define STRNLEN		wels_strnlen_s	// override s.t.r.n.l.e.n here for safe
-#define VSPRINTF	vsprintf
 
 #endif//WIN32
 
