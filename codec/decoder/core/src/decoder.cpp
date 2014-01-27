@@ -37,30 +37,19 @@
  *
  *************************************************************************************
  */
-#include <string.h>
-#include "macros.h"
 #include "codec_def.h"
 #include "decoder.h"
-#include "error_code.h"
 #include "cpu.h"
-#include "cpu_core.h"
 #include "au_parser.h"
-#include "utils.h"
-#include "nal_prefix.h"
-#include "dec_frame.h"
-#include "pic_queue.h"
-#include "vlc_decoder.h"
 #include "get_intra_predictor.h"
 #include "rec_mb.h"
 #include "mc.h"
 #include "decode_mb_aux.h"
 #include "manage_dec_ref.h"
-#include "codec_app_def.h"
 #include "decoder_core.h"
 #include "deblocking.h"
 #include "expand_pic.h"
 #include "decode_slice.h"
-#include "crt_util_safe_x.h"	// Safe CRT routines like utils for cross platforms
 #include "mem_align.h"
 
 namespace WelsDec {
@@ -345,8 +334,6 @@ void_t WelsOpenDecoder (PWelsDecoderContext pCtx) {
   if (ERR_NONE != WelsInitMemory (pCtx))
     return;
 
-  pCtx->iMaxWidthInSps	= 0;
-  pCtx->iMaxHeightInSps	= 0;
 #ifdef LONG_TERM_REF
   pCtx->bParamSetsLostFlag = true;
 #else
@@ -683,19 +670,6 @@ int32_t SyncPictureResolutionExt (PWelsDecoderContext pCtx, const int32_t kiMbWi
   }
 
   return iErr;
-}
-
-/*!
- * \brief	update maximal picture width and height if applicable when receiving a SPS NAL
- */
-void_t UpdateMaxPictureResolution (PWelsDecoderContext pCtx, const int32_t kiCurWidth, const int32_t kiCurHeight) {
-  //any dimension larger than that of current dimension, should modify the max-dimension
-  if ((kiCurWidth * kiCurHeight) > (pCtx->iMaxWidthInSps * pCtx->iMaxHeightInSps)) {
-    pCtx->iMaxWidthInSps	= kiCurWidth;
-    pCtx->iMaxHeightInSps	= kiCurHeight;
-  }
-
-  return;
 }
 
 void_t AssignFuncPointerForRec (PWelsDecoderContext pCtx) {

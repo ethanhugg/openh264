@@ -31,25 +31,10 @@
  *	decoder_core.c:	Wels decoder framework core implementation
  */
 
-#include <string.h>
-#include "codec_def.h"
 #include "decoder_core.h"
-#include "typedefs.h"
-#include "wels_const.h"
-#include "wels_common_basis.h"
-#include "codec_app_def.h"
-#include "decoder_context.h"
-#include "dec_golomb.h"
-#include "bit_stream.h"
 #include "error_code.h"
-#include "parameter_sets.h"
-#include "fmo.h"
-#include "utils.h"
 #include "memmgr_nal_unit.h"
-#include "dec_frame.h"
 #include "au_parser.h"
-#include "pic_queue.h"
-#include "ls_defines.h"
 #include "decode_slice.h"
 #include "manage_dec_ref.h"
 #include "expand_pic.h"
@@ -1586,7 +1571,7 @@ int32_t ConstructAccessUnit (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferI
   if (NAL_UNIT_CODED_SLICE_IDR == pCurAu->pNalUnitsList[pCurAu->uiStartPos]->sNalHeaderExt.sNalUnitHeader.eNalUnitType ||
       pCurAu->pNalUnitsList[pCurAu->uiStartPos]->sNalHeaderExt.bIdrFlag) {
     WelsResetRefPic (pCtx); //clear ref pPic when IDR NAL
-    iErr = SyncPictureResolutionExt (pCtx, (pCtx->iMaxWidthInSps + 15) >> 4, (pCtx->iMaxHeightInSps + 15) >> 4);
+	iErr = SyncPictureResolutionExt (pCtx, pCtx->pSps->iMbWidth, pCtx->pSps->iMbHeight);
 
     if (ERR_NONE != iErr) {
       WelsLog (pCtx, WELS_LOG_WARNING, "sync picture resolution ext failed,  the error is %d", iErr);
