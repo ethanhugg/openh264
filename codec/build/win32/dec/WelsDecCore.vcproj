@@ -790,7 +790,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\decoder\core\inc\macros.h"
+					RelativePath="..\..\..\common\macros.h"
 					>
 				</File>
 				<File
@@ -888,6 +888,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\common\cpu.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\common\crt_util_safe_x.cpp"
 					>
 				</File>
 				<File
