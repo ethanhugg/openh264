@@ -79,7 +79,7 @@ int32_t   WelsSnprintf (str_t* buffer,  int32_t sizeOfBuffer,  const str_t* form
 str_t*   WelsStrncpy (str_t* dest, int32_t sizeInBytes, const str_t* src, int32_t count);
 str_t*   WelsStrcat (str_t* dest, int32_t sizeInBytes, str_t* src);
 int32_t   WelsStrnlen (const str_t* str,  int32_t maxlen);
-int32_t   WelsVsprintf (str_t* buffer, int32_t sizeOfBuffer, const str_t* format, va_list argptr);
+int32_t   WelsVsnprintf (str_t* buffer, int32_t sizeOfBuffer, const str_t* format, va_list argptr);
 
 WelsFileHandle*        WelsFopen (const str_t* filename,  const str_t* mode);
 int32_t                WelsFclose (WelsFileHandle*   fp);
@@ -427,7 +427,6 @@ static __inline int wels_strnlen_s (const char* dest, int dmax) {
 #define STRCAT		strcat_s
 #define STRNLEN		strnlen_s
 #define VSPRINTF	vsprintf_s
-#define FOPEN		fopen_s
 #else	// mainly for VC6
 #define SNPRINTF	_snprintf
 #define LOCALTIME	localtime
@@ -436,7 +435,6 @@ static __inline int wels_strnlen_s (const char* dest, int dmax) {
 #define STRCAT		wels_strcat_s	// override s.t.r.c.a.t here for safe
 #define STRNLEN		wels_strnlen_s	// override s.t.r.n.l.e.n here for safe
 #define VSPRINTF	vsprintf
-#define FOPEN		fopen
 #endif//_MSC_VER >= 1500
 
 #else//__GNUC__
@@ -447,7 +445,6 @@ static __inline int wels_strnlen_s (const char* dest, int dmax) {
 #define STRCAT		wels_strcat_s	// override s.t.r.c.a.t here for safe
 #define STRNLEN		wels_strnlen_s	// override s.t.r.n.l.e.n here for safe
 #define VSPRINTF	vsprintf
-#define FOPEN		fopen
 
 #endif//WIN32
 
