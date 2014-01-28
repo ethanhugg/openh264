@@ -5,5 +5,4 @@ before_install:
  - brew update
  - brew install nasm
 install: make gtest-bootstrap
-script: make -B ENABLE64BIT=Yes && make test && make -B ENABLE64BIT=Yes BUILDTYPE=Debug && make test && make -B && make test && make -B BUILDTYPE=Debug && make test
-
+script: make -B ENABLE64BIT=Yes && make test && make -B ENABLE64BIT=Yes BUILDTYPE=Debug && make test && make -B ENABLE64BIT=No && make test && make -B ENABLE64BIT=No BUILDTYPE=Debug && make test

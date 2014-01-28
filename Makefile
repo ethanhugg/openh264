@@ -1,4 +1,5 @@
 UNAME=$(shell uname | tr A-Z a-z | tr -d \\-[:digit:].)
+ARCH=$(shell uname -m)
 LIBPREFIX=lib
 LIBSUFFIX=a
 CXX_O=-o $@
@@ -11,7 +12,11 @@ CFLAGS_M32=-m32
 CFLAGS_M64=-m64
 BUILDTYPE=Release
 
-
+ifeq (, $(ENABLE64BIT))
+ifeq ($(ARCH), x86_64)
+ENABLE64BIT=Yes
+endif
+endif
 
 ifeq (,$(wildcard ./gtest))
 HAVE_GTEST=No
@@ -94,7 +99,7 @@ CODEC_UNITTEST_DEPS = $(LIBPREFIX)gtest.$(LIBSUFFIX) $(LIBPREFIX)decoder.$(LIBSU
 all:	libraries binaries
 
 clean:
-	rm -f $(OBJS) $(LIBRARIES) $(BINARIES)
+	rm -f $(OBJS) $(OBJS:.o=.d) $(LIBRARIES) $(BINARIES)
 
 gtest-bootstrap:
 	svn co http://googletest.googlecode.com/svn/trunk/ gtest
@@ -119,3 +124,5 @@ ifeq ($(HAVE_GTEST),Yes)
 include build/gtest-targets.mk
 include test/targets.mk
 endif
+
+-include $(OBJS:.o=.d)
