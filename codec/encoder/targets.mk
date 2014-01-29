@@ -41,7 +41,6 @@ ENCODER_ASM_SRCS=\
 	$(ENCODER_SRCDIR)/./core/asm/intra_pred.asm\
 	$(ENCODER_SRCDIR)/./core/asm/memzero.asm\
 	$(ENCODER_SRCDIR)/./core/asm/quant.asm\
-	$(ENCODER_SRCDIR)/./core/asm/satd_sad.asm\
 	$(ENCODER_SRCDIR)/./core/asm/score.asm\
 
 ENCODER_OBJS += $(ENCODER_ASM_SRCS:.asm=.o)
@@ -55,8 +54,8 @@ $(ENCODER_SRCDIR)/%.o: $(ENCODER_SRCDIR)/%.asm
 	$(ASM) $(ASMFLAGS) $(ASM_INCLUDES) $(ENCODER_ASMFLAGS) $(ENCODER_ASM_INCLUDES) -o $@ $<
 
 $(LIBPREFIX)encoder.$(LIBSUFFIX): $(ENCODER_OBJS)
-	rm -f $(LIBPREFIX)encoder.$(LIBSUFFIX)
-	$(AR) $(AR_OPTS) $(ENCODER_OBJS)
+	rm -f $@
+	$(AR) $(AR_OPTS) $+
 
 libraries: $(LIBPREFIX)encoder.$(LIBSUFFIX)
 LIBRARIES += $(LIBPREFIX)encoder.$(LIBSUFFIX)

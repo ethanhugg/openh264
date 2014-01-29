@@ -51,7 +51,6 @@
 #include "ref_list_mgr_svc.h"
 #include "ls_defines.h"
 #include "crt_util_safe_x.h"	// Safe CRT routines like utils for cross platforms
-#include "array_stack_align.h"
 #if defined(MT_ENABLED)
 #include "slice_multi_threading.h"
 #endif//MT_ENABLED
@@ -1789,7 +1788,7 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
 
 #ifdef ENABLE_TRACE_FILE
     if (NULL != pCtx->pFileLog) {
-      fclose (pCtx->pFileLog);
+      WelsFclose (pCtx->pFileLog);
       pCtx->pFileLog	= NULL;
     }
     pCtx->uiSizeLog	= 0;
@@ -2085,19 +2084,7 @@ int32_t WelsInitEncoderExt (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPar
   if (wlog == WelsLogDefault) {
     str_t fname[MAX_FNAME_LEN] = {0};
 
-#if defined (_MSC_VER)
-#if _MSC_VER>=1500
-    SNPRINTF (fname, MAX_FNAME_LEN, MAX_FNAME_LEN, "%swels_svc_encoder_trace.txt",
-              pCodingParam->sTracePath);		// confirmed_safe_unsafe_usage
-#else
-    SNPRINTF (fname, MAX_FNAME_LEN, "%swels_svc_encoder_trace.txt",
-              pCodingParam->sTracePath);		// confirmed_safe_unsafe_usage
-#endif//_MSC_VER>=1500
-#else
-    //GNUC/
-    SNPRINTF (fname,      MAX_FNAME_LEN,       "%swels_svc_encoder_trace.txt",
-              pCodingParam->sTracePath);		// confirmed_safe_unsafe_usage
-#endif//_MSC_VER
+    WelsSnprintf (fname, MAX_FNAME_LEN, "wels_svc_encoder_trace.txt");
 
 
     pCtx->pFileLog	= WelsFopen (fname, "wt+");

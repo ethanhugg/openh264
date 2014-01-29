@@ -16,6 +16,7 @@ COMMON_ASM_SRCS=\
 	$(COMMON_SRCDIR)/./mb_copy.asm\
 	$(COMMON_SRCDIR)/./mc_chroma.asm\
 	$(COMMON_SRCDIR)/./mc_luma.asm\
+	$(COMMON_SRCDIR)/./satd_sad.asm\
 	$(COMMON_SRCDIR)/./vaa.asm\
 
 COMMON_OBJS += $(COMMON_ASM_SRCS:.asm=.o)
@@ -29,8 +30,8 @@ $(COMMON_SRCDIR)/%.o: $(COMMON_SRCDIR)/%.asm
 	$(ASM) $(ASMFLAGS) $(ASM_INCLUDES) $(COMMON_ASMFLAGS) $(COMMON_ASM_INCLUDES) -o $@ $<
 
 $(LIBPREFIX)common.$(LIBSUFFIX): $(COMMON_OBJS)
-	rm -f $(LIBPREFIX)common.$(LIBSUFFIX)
-	$(AR) $(AR_OPTS) $(COMMON_OBJS)
+	rm -f $@
+	$(AR) $(AR_OPTS) $+
 
 libraries: $(LIBPREFIX)common.$(LIBSUFFIX)
 LIBRARIES += $(LIBPREFIX)common.$(LIBSUFFIX)

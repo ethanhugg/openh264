@@ -1,7 +1,7 @@
 PROCESSING_SRCDIR=codec/processing
 PROCESSING_CPP_SRCS=\
 	$(PROCESSING_SRCDIR)/./src/adaptivequantization/AdaptiveQuantization.cpp\
-	$(PROCESSING_SRCDIR)/./src/backgounddetection/BackgroundDetection.cpp\
+	$(PROCESSING_SRCDIR)/./src/backgrounddetection/BackgroundDetection.cpp\
 	$(PROCESSING_SRCDIR)/./src/common/memory.cpp\
 	$(PROCESSING_SRCDIR)/./src/common/thread.cpp\
 	$(PROCESSING_SRCDIR)/./src/common/WelsFrameWork.cpp\
@@ -23,8 +23,6 @@ ifeq ($(USE_ASM), Yes)
 PROCESSING_ASM_SRCS=\
 	$(PROCESSING_SRCDIR)/./src/asm/denoisefilter.asm\
 	$(PROCESSING_SRCDIR)/./src/asm/downsample_bilinear.asm\
-	$(PROCESSING_SRCDIR)/./src/asm/intra_pred.asm\
-	$(PROCESSING_SRCDIR)/./src/asm/sad.asm\
 	$(PROCESSING_SRCDIR)/./src/asm/vaa.asm\
 
 PROCESSING_OBJS += $(PROCESSING_ASM_SRCS:.asm=.o)
@@ -38,8 +36,8 @@ $(PROCESSING_SRCDIR)/%.o: $(PROCESSING_SRCDIR)/%.asm
 	$(ASM) $(ASMFLAGS) $(ASM_INCLUDES) $(PROCESSING_ASMFLAGS) $(PROCESSING_ASM_INCLUDES) -o $@ $<
 
 $(LIBPREFIX)processing.$(LIBSUFFIX): $(PROCESSING_OBJS)
-	rm -f $(LIBPREFIX)processing.$(LIBSUFFIX)
-	$(AR) $(AR_OPTS) $(PROCESSING_OBJS)
+	rm -f $@
+	$(AR) $(AR_OPTS) $+
 
 libraries: $(LIBPREFIX)processing.$(LIBSUFFIX)
 LIBRARIES += $(LIBPREFIX)processing.$(LIBSUFFIX)
