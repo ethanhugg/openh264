@@ -122,8 +122,8 @@ int ParseConfig (CReadConfig& cRdCfg, SEncParamExt& pSvcParam, SFilesSet& sFileS
         pSvcParam.uiFrameToBeCoded	= atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("SourceSequenceInRGB24") == 0) {
         pSvcParam.iInputCsp	= atoi (strTag[1].c_str()) == 0 ? videoFormatI420 : videoFormatRGB;
-      } else if (strTag[0].compare ("GOPSize") == 0) {
-        pSvcParam.uiGopSize	= atoi (strTag[1].c_str());
+      } else if (strTag[0].compare ("TemporalLayerNum") == 0) {
+        pSvcParam.iTemporalLayerNum	= atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("IntraPeriod") == 0) {
         pSvcParam.uiIntraPeriod	= atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("EnableSpsPpsIDAddition") == 0) {
@@ -428,8 +428,8 @@ int ParseCommandLine (int argc, char** argv, SEncParamExt& pSvcParam, SFilesSet&
     else if (!strcmp (pCommand, "-frms") && (n < argc))
       pSvcParam.uiFrameToBeCoded = atoi (argv[n++]);
 
-    else if (!strcmp (pCommand, "-gop") && (n < argc))
-      pSvcParam.uiGopSize = atoi (argv[n++]);
+    else if (!strcmp (pCommand, "-numtl") && (n < argc))
+      pSvcParam.iTemporalLayerNum = atoi (argv[n++]);
 
     else if (!strcmp (pCommand, "-iper") && (n < argc))
       pSvcParam.uiIntraPeriod = atoi (argv[n++]);
@@ -889,10 +889,8 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
   int8_t  iDlayerIdx = 0;
   uint8_t* pYUV[MAX_DEPENDENCY_LAYER] = { 0 };
   SSourcePicture**    pSrcPicList = NULL;
-#if (defined(RUN_SIMULATOR) || defined(_WIN32)||defined(_MACH_PLATFORM) || (defined(__GNUC__)))
   // Inactive with sink with output file handler
   FILE* pFpBs = NULL;
-#endif
 #if defined(COMPARE_DATA)
   //For getting the golden file handle
   FILE* fpGolden = NULL;
@@ -944,7 +942,6 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
     iRet = 1;
     goto INSIDE_MEM_FREE;
   }
-#if (defined(RUN_SIMULATOR) || defined(_WIN32)||defined(_MACH_PLATFORM) || (defined(__GNUC__)))
   // Inactive with sink with output file handler
   if (fs.strBsFile.length() > 0) {
     pFpBs = fopen (fs.strBsFile.c_str(), "wb");
@@ -954,7 +951,6 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
       goto INSIDE_MEM_FREE;
     }
   }
-#endif
 
 #if defined(COMPARE_DATA)
   //For getting the golden file handle
@@ -1108,9 +1104,7 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
             delete [] pUCArry;
           }
 #endif
-#if (defined(RUN_SIMULATOR) || defined(_WIN32)||defined(_MACH_PLATFORM) || (defined(__GNUC__)))
           fwrite (pLayerBsInfo->pBsBuf, 1, iLayerSize, pFpBs);	// write pure bit stream into file
-#endif
           iFrameSize += iLayerSize;
         }
         ++ iLayer;
@@ -1136,12 +1130,10 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
   }
 
 INSIDE_MEM_FREE: {
-#if (defined(RUN_SIMULATOR) || defined(_WIN32)||defined(_MACH_PLATFORM) || (defined(__GNUC__)))
     if (pFpBs) {
       fclose (pFpBs);
       pFpBs = NULL;
     }
-#endif
 #if defined (STICK_STREAM_SIZE)
     if (fTrackStream) {
       fclose (fTrackStream);
