@@ -10,6 +10,7 @@ before_install:
 install:
   - wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20131030.zip
   - unzip -qq adt-bundle-linux-x86_64-20131030.zip 
+  - export PATH=$PATH:`pwd`/adt-bundle-linux-x86_64-20131030/sdk/tools
   - wget http://dl.google.com/android/ndk/android-ndk-r9c-linux-x86_64.tar.bz2
   - tar xjf android-ndk-r9c-linux-x86_64.tar.bz2
   - export NDKROOT=`pwd`/android-ndk-r9c
