@@ -9,9 +9,9 @@ before_install:
   - sudo ln -s /lib/i386-linux-gnu/libcrypto.so.1.0.0 /lib/i386-linux-gnu/libcrypto.so
 install:
   - wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20131030.zip
-  - unzip adt-bundle-linux-x86_64-20131030.zip 
+  - unzip -qq adt-bundle-linux-x86_64-20131030.zip 
   - wget http://dl.google.com/android/ndk/android-ndk-r9c-linux-x86_64.tar.bz2
-  - tar xvjf android-ndk-r9c-linux-x86_64.tar.bz2
+  - tar xjf android-ndk-r9c-linux-x86_64.tar.bz2
   - export NDKROOT=`pwd`/android-ndk-r9c
 script: make -B OS=Android && make -B OS=Android BUILDTYPE=Debug
 
