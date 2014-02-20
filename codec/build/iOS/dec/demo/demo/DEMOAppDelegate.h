@@ -1,6 +1,6 @@
 /*!
  * \copy
- *     Copyright (c)  2009-2013, Cisco Systems
+ *     Copyright (c)  2013, Cisco Systems
  *     All rights reserved.
  *
  *     Redistribution and use in source and binary forms, with or without
@@ -28,75 +28,12 @@
  *     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *     POSSIBILITY OF SUCH DAMAGE.
  *
- *
- * \file	stat.h
- *
- * \brief	statistical pData information
- *
- * \date	4/22/2009 Created
- *
- *************************************************************************************
  */
-#if !defined(WELS_ENCODER_STATISTICAL_DATA_H__)
-#define WELS_ENCODER_STATISTICAL_DATA_H__
 
-namespace WelsSVCEnc {
+#import <UIKit/UIKit.h>
 
-/*
- *	Stat quality
- */
-typedef struct TagStatQuality {
+@interface DEMOAppDelegate : UIResponder <UIApplicationDelegate>
 
-  float	rYPsnr[5];
-  float	rUPsnr[5];
-  float	rVPsnr[5];
+@property (strong, nonatomic) UIWindow *window;
 
-} SStatQuality;
-
-/*
- *	Stat complexity pData
- */
-typedef struct TagComplexityStat {
-
-#ifdef FME_TEST
-  int32_t		cost_time;
-  int32_t		me_time;
-  int32_t		mvp_time;
-  int32_t		mvb_time;
-#endif
-
-  // any else?
-
-} SComplexityStat;
-
-/*
- *	Stat slice details information
- */
-typedef struct TagStatSliceInfo {
-
-  /* per slice info */
-  int32_t		iSliceCount[5];
-  int32_t		iSliceSize [5];
-  int32_t		iMbCount   [5][18];
-
-} SStatSliceInfo;
-
-/*
- *	For overall statistical pData
- */
-typedef struct TagStatData {
-
-  // Quality
-  SStatQuality		sQualityStat;
-
-  // Complexity
-  SComplexityStat		sComplexityStat;
-
-  // SSlice information output
-  SStatSliceInfo		sSliceData;
-
-} SStatData;
-
-}
-
-#endif//WELS_ENCODER_STATISTICAL_DATA_H__
+@end

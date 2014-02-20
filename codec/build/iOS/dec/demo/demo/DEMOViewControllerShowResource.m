@@ -30,39 +30,64 @@
  *
  */
 
-#ifndef TRACE_H_
-#define TRACE_H_
+#import "DEMOViewControllerShowResource.h"
 
-#include "typedefs.h"
-#include "bit_stream.h"
-#include <stdio.h>
+@interface DEMOViewControllerShowResource ()
+
+@end
+
+@implementation DEMOViewControllerShowResource
+
+- (id)initWithStyle:(UITableViewStyle)style
+{
+    self = [super initWithStyle:style];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    // Return the number of sections.
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    // Return the number of rows in the section.
+    return [self.resFileArray count];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *CellIdentifier = @"resourcesListCell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+    // Configure the cell...
+    cell.textLabel.text = [[self.resFileArray objectAtIndex:indexPath.row] lastPathComponent];
+    return cell;
+}
 
 
-#define TRACE_MB_ID(fp, value) \
-			{\
-			fprintf(fp, "----------MB index:	%d ----------\n", value);\
-			fflush(fp);\
-			}
-#define TRACE_FRAME_ID(fp, value) \
-			{\
-			fprintf(fp, "----------Frame index:	%d ----------\n", value);\
-			fflush(fp);\
-			}
+#pragma mark - Table view delegate
 
-#define TRACE_VALUE(fp, value) \
-			{\
-				fprintf(fp, "(%d)\n", value);\
-				fflush(fp);\
-			}
-#define TRACE_VALUE_2(fp, value1, value2) \
-			{\
-			fprintf(fp, "(%d,%d)\n", value1, value2);\
-			fflush(fp);\
-			}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // Navigation logic may go here. Create and push another view controller.
+    self.selectedRow = indexPath.row;
+}
 
-void TraceName (FILE* pFp, int8_t* pName, SBitStringAux* pBs);
-
-void TraceBits (FILE* pFp, uint32_t uiStart, uint32_t uiEnd, SBitStringAux* pBs);
-
-
-#endif
+@end

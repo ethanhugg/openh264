@@ -2,7 +2,7 @@ USE_ASM = No
 ARCH = arm
 SHAREDLIBSUFFIX = so
 GCCVERSION = 4.8
-APILEVEL = 19
+NDKLEVEL = 12
 HOSTOS = $(shell uname | tr A-Z a-z | tr -d \\-[:digit:].)
 HOSTARCH = $(shell uname -m)
 ifeq ($(ARCH), arm)
@@ -18,9 +18,22 @@ else
     GCCPATHPREFIX = x86
     GCCPREFIX = i686-linux-android
     APP_ABI = x86
+    USE_ASM = Yes
+ifeq (Yes, $(USE_ASM))
+    ASM = nasm
+    CFLAGS += -DX86_ASM
+    ASMFLAGS += -DNOPREFIX -f elf32 -DX86_32
+endif
 endif
 
-SYSROOT = $(NDKROOT)/platforms/android-$(APILEVEL)/arch-$(ARCH)
+ifndef NDKROOT
+$(error NDKROOT is not set)
+endif
+ifndef TARGET
+$(error TARGET is not set)
+endif
+
+SYSROOT = $(NDKROOT)/platforms/android-$(NDKLEVEL)/arch-$(ARCH)
 CXX = $(NDKROOT)/toolchains/$(GCCPATHPREFIX)-$(GCCVERSION)/prebuilt/$(HOSTOS)-$(HOSTARCH)/bin/$(GCCPREFIX)-g++
 CFLAGS += -DLINUX -fpic --sysroot=$(SYSROOT) -fno-rtti -fno-exceptions
 LDFLAGS += --sysroot=$(SYSROOT) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-soname,libwels.so
@@ -29,7 +42,7 @@ LDFLAGS += --sysroot=$(SYSROOT) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,rel
 binaries : decdemo encdemo
 
 decdemo: libraries
-	sh -c 'cd ./codec/build/android/dec/jni; $(NDKROOT)/ndk-build -B APP_ABI=$(APP_ABI); cd ..; android update project -p . ; ant debug; cd ../../../..'
+	sh -c 'cd ./codec/build/android/dec/jni; $(NDKROOT)/ndk-build -B APP_ABI=$(APP_ABI); cd ..; android update project -t $(TARGET) -p . ; ant debug; cd ../../../..'
 
 encdemo: libraries
-	sh -c 'cd ./codec/build/android/enc/jni; $(NDKROOT)/ndk-build -B APP_ABI=$(APP_ABI); cd ..; android update project -p . ; ant debug; cd ../../../..'
+	sh -c 'cd ./codec/build/android/enc/jni; $(NDKROOT)/ndk-build -B APP_ABI=$(APP_ABI); cd ..; android update project -t $(TARGET) -p . ; ant debug; cd ../../../..'

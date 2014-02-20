@@ -1,6 +1,6 @@
 /*!
  * \copy
- *     Copyright (c)  2009-2013, Cisco Systems
+ *     Copyright (c)  2013, Cisco Systems
  *     All rights reserved.
  *
  *     Redistribution and use in source and binary forms, with or without
@@ -28,75 +28,19 @@
  *     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *     POSSIBILITY OF SUCH DAMAGE.
  *
- *
- * \file	stat.h
- *
- * \brief	statistical pData information
- *
- * \date	4/22/2009 Created
- *
- *************************************************************************************
+ *     Prefix header for all source files of the 'demo' target in the 'demo' project
  */
-#if !defined(WELS_ENCODER_STATISTICAL_DATA_H__)
-#define WELS_ENCODER_STATISTICAL_DATA_H__
 
-namespace WelsSVCEnc {
+#import <Availability.h>
 
-/*
- *	Stat quality
- */
-typedef struct TagStatQuality {
-
-  float	rYPsnr[5];
-  float	rUPsnr[5];
-  float	rVPsnr[5];
-
-} SStatQuality;
-
-/*
- *	Stat complexity pData
- */
-typedef struct TagComplexityStat {
-
-#ifdef FME_TEST
-  int32_t		cost_time;
-  int32_t		me_time;
-  int32_t		mvp_time;
-  int32_t		mvb_time;
+#ifndef __IPHONE_5_0
+#warning "This project uses features only available in iOS SDK 5.0 and later."
 #endif
 
-  // any else?
+#ifdef __OBJC__
+    #import <UIKit/UIKit.h>
+    #import <Foundation/Foundation.h>
+#endif
 
-} SComplexityStat;
-
-/*
- *	Stat slice details information
- */
-typedef struct TagStatSliceInfo {
-
-  /* per slice info */
-  int32_t		iSliceCount[5];
-  int32_t		iSliceSize [5];
-  int32_t		iMbCount   [5][18];
-
-} SStatSliceInfo;
-
-/*
- *	For overall statistical pData
- */
-typedef struct TagStatData {
-
-  // Quality
-  SStatQuality		sQualityStat;
-
-  // Complexity
-  SComplexityStat		sComplexityStat;
-
-  // SSlice information output
-  SStatSliceInfo		sSliceData;
-
-} SStatData;
-
-}
-
-#endif//WELS_ENCODER_STATISTICAL_DATA_H__
+//For linking welsdec.a
+#define _STATIC_LINK_DECODER_LIB_
