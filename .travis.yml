@@ -14,5 +14,6 @@ install:
   - wget http://dl.google.com/android/ndk/android-ndk-r9c-linux-x86_64.tar.bz2
   - tar xjf android-ndk-r9c-linux-x86_64.tar.bz2
   - export NDKROOT=`pwd`/android-ndk-r9c
+  - export TARGET=android-12
 script: make -B OS=android && make -B OS=android BUILDTYPE=Debug
 
