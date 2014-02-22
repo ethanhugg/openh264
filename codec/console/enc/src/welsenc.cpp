@@ -656,10 +656,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].iVideoWidth	= 160;
   sParam.sSpatialLayers[iIndexLayer].iVideoHeight	= 90;
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 7.5f;
-  sParam.sSpatialLayers[iIndexLayer].iQualityLayerNum	    = 1;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 64000;
-  sParam.sSpatialLayers[iIndexLayer].iCgsSnrRefined		= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[0]	= 0;
   sParam.sSpatialLayers[iIndexLayer].iInterSpatialLayerPredFlag	= 0;
 #ifdef MT_ENABLED
   sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
@@ -669,12 +666,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].iVideoWidth	= 320;
   sParam.sSpatialLayers[iIndexLayer].iVideoHeight	= 180;
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 15.0f;
-  sParam.sSpatialLayers[iIndexLayer].iQualityLayerNum	    = 1;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 160000;
-  sParam.sSpatialLayers[iIndexLayer].iCgsSnrRefined		= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[0]	= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[1]	= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[2]	= 0;
   sParam.sSpatialLayers[iIndexLayer].iInterSpatialLayerPredFlag	= 0;
 #ifdef MT_ENABLED
   sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
@@ -684,12 +676,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].iVideoWidth	= 640;
   sParam.sSpatialLayers[iIndexLayer].iVideoHeight	= 360;
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 30.0f;
-  sParam.sSpatialLayers[iIndexLayer].iQualityLayerNum	    = 1;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 512000;
-  sParam.sSpatialLayers[iIndexLayer].iCgsSnrRefined		= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[0]	= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[1]	= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[2]	= 0;
   sParam.sSpatialLayers[iIndexLayer].iInterSpatialLayerPredFlag	= 0;
 #ifdef MT_ENABLED
   sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
@@ -700,12 +687,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].iVideoWidth	= 1280;
   sParam.sSpatialLayers[iIndexLayer].iVideoHeight	= 720;
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 30.0f;
-  sParam.sSpatialLayers[iIndexLayer].iQualityLayerNum	    = 1;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 1500000;
-  sParam.sSpatialLayers[iIndexLayer].iCgsSnrRefined		= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[0]	= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[1]	= 0;
-//	sParam.sSpatialLayers[iIndexLayer].iQualityBitrate[2]	= 0;
   sParam.sSpatialLayers[iIndexLayer].iInterSpatialLayerPredFlag	= 0;
 #ifdef MT_ENABLED
   sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
