@@ -57,7 +57,7 @@ namespace WelsDec {
   if (iReadBytes > iAllowedBytes+1) { \
     return ERR_INFO_READ_OVERFLOW; \
   } \
-	iCurBits |= ((pBufPtr[0] << 8) | pBufPtr[1]) << (iLeftBits); \
+	iCurBits |= ((uint32_t)((pBufPtr[0] << 8) | pBufPtr[1])) << (iLeftBits); \
 	iLeftBits -= 16; \
 	pBufPtr +=2; \
 }
@@ -319,6 +319,8 @@ if (val > upper_bound) {\
 #define NUM_REF_IDX_L0_ACTIVE_OFFSET 1
 #define NUM_REF_IDX_L1_ACTIVE_OFFSET 1
 
+// From Level 5.2
+#define MAX_MB_SIZE 36864
 } // namespace WelsDec
 
 #endif//WELS_EXPONENTIAL_GOLOMB_ENTROPY_CODING_H__
