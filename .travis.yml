@@ -4,9 +4,7 @@ compiler:
   - clang
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq nasm g++-4.6-multilib gcc-multilib libc6-dev-i386 lib32z1-dev libssl1.0.0:i386
-#link libcrypto for 32bit
-  - sudo ln -s /lib/i386-linux-gnu/libcrypto.so.1.0.0 /lib/i386-linux-gnu/libcrypto.so
+  - sudo apt-get install -qq nasm g++-4.6-multilib gcc-multilib libc6-dev-i386
 install:
   - wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20131030.zip
   - unzip -qq adt-bundle-linux-x86_64-20131030.zip 
