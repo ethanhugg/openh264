@@ -31,6 +31,7 @@ struct EncodeFileParam {
   int width;
   int height;
   float frameRate;
+  bool slices;
 };
 
 class EncoderOutputTest : public ::testing::WithParamInterface<EncodeFileParam>,
@@ -53,27 +54,31 @@ class EncoderOutputTest : public ::testing::WithParamInterface<EncodeFileParam>,
 
 TEST_P(EncoderOutputTest, CompareOutput) {
   EncodeFileParam p = GetParam();
-  EncodeFile(p.fileName, p.width, p.height, p.frameRate, this);
+  EncodeFile(p.fileName, p.width, p.height, p.frameRate, p.slices, this);
 
   unsigned char digest[SHA_DIGEST_LENGTH];
   SHA1Result(&ctx_, digest);
   if (!HasFatalFailure()) {
-    ASSERT_TRUE(CompareHash(digest, p.hashStr));
+    CompareHash(digest, p.hashStr);
   }
 }
 
 static const EncodeFileParam kFileParamArray[] = {
   {
       "res/CiscoVT2people_320x192_12fps.yuv",
-      "06441376891cbc237a36e59b62131cd94ff9cb19", 320, 192, 12.0f
+      "06441376891cbc237a36e59b62131cd94ff9cb19", 320, 192, 12.0f, false
   },
   {
       "res/CiscoVT2people_160x96_6fps.yuv",
-      "4f3759fc44125b27a179ebff158dbba9e431bd0b", 160, 96, 6.0f
+      "4f3759fc44125b27a179ebff158dbba9e431bd0b", 160, 96, 6.0f, false
   },
   {
       "res/Static_152_100.yuv",
-      "a004c7410a78bfe00af65ae7071ce1c485cf036e", 152, 100, 6.0f
+      "af5c6a41b567ce1b2cb6fd427f4379473d3b829f", 152, 100, 6.0f, false
+  },
+  {
+      "res/CiscoVT2people_320x192_12fps.yuv",
+      "be0079b022b18fdce04570db24e4327ca26a0ecb", 320, 192, 12.0f, true
   },
 };
 
