@@ -2171,7 +2171,7 @@ void WelsUninitEncoderExt (sWelsEncCtx** ppCtx) {
       WelsMultipleEventsWaitAllBlocking (iThreadCount, & (*ppCtx)->pSliceThreading->pFinSliceCodingEvent[0]);
 
     }
-#elif defined(__GNUC__)
+#else
     while (iThreadIdx < iThreadCount) {
       int res = 0;
       if ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]) {
@@ -3248,11 +3248,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
           t_bs_append = WelsTime() - t_bs_append;
           if (pCtx->pSliceThreading->pFSliceDiff) {
             fprintf (pCtx->pSliceThreading->pFSliceDiff,
-#if defined(_WIN32)
-                     "%6I64d us consumed at AppendSliceToFrameBs() for coding_idx: %d iDid: %d qid: %d\n",
-#else
-                     "%6lld us consumed at AppendSliceToFrameBs() for coding_idx: %d iDid: %d qid: %d\n",
-#endif//WIN32
+                     "%6"PRId64" us consumed at AppendSliceToFrameBs() for coding_idx: %d iDid: %d qid: %d\n",
                      t_bs_append, pCtx->iCodingIndex, iCurDid, 0);
           }
 #endif//MT_DEBUG
@@ -3300,7 +3296,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
             } else {
               WelsSleep (1);
             }
-#else//__GNUC__
+#else
             // TODO for pthread platforms
             // alternate implementation using blocking due non-blocking with timeout mode not support at wels thread lib, tune back if available
             WelsMultipleEventsWaitAllBlocking (iNumThreadsRunning, &pCtx->pSliceThreading->pSliceCodedEvent[0]);

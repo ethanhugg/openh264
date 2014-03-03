@@ -41,13 +41,13 @@
 #if defined(MT_ENABLED)
 
 #include <assert.h>
-#if defined(__GNUC__) && !defined(_WIN32)
+#if !defined(_WIN32)
 #include <semaphore.h>
 #ifndef SEM_NAME_MAX
 // length of semaphore name should be system constrained at least on mac 10.7
 #define  SEM_NAME_MAX 32
 #endif//SEM_NAME_MAX
-#endif//__GNUC__
+#endif//!_WIN32
 #include "slice_multi_threading.h"
 #include "mt_defs.h"
 #include "nal_encap.h"
@@ -332,13 +332,11 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSmt->pReadySliceCodingEvent), FreeMemorySvc (ppCtx))
   pSmt->pFinSliceCodingEvent	= (WELS_EVENT*)pMa->WelsMalloc (sizeof (WELS_EVENT) * iThreadNum, "pFinSliceCodingEvent");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSmt->pFinSliceCodingEvent), FreeMemorySvc (ppCtx))
-#endif//_WIN32
-
-#if defined(__GNUC__)
+#else
   pSmt->pUpdateMbListThrdHandles	= (WELS_THREAD_HANDLE*)pMa->WelsMalloc (sizeof (WELS_THREAD_HANDLE) * iThreadNum,
                                     "pUpdateMbListThrdHandles");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSmt->pUpdateMbListThrdHandles), FreeMemorySvc (ppCtx))
-#endif//__GNUC__
+#endif//!_WIN32
 #ifdef _WIN32
   pSmt->pUpdateMbListEvent	= (WELS_EVENT*)pMa->WelsMalloc (sizeof (WELS_EVENT) * iThreadNum, "pUpdateMbListEvent");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSmt->pUpdateMbListEvent), FreeMemorySvc (ppCtx))
@@ -386,10 +384,10 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
 
   iIdx = 0;
   while (iIdx < iThreadNum) {
-#if defined(__GNUC__) && !defined(_WIN32)	// for posix threading
+#if !defined(_WIN32)	// for posix threading
     char name[SEM_NAME_MAX] = {0};
     WELS_THREAD_ERROR_CODE err = 0;
-#endif//__GNUC__
+#endif//!_WIN32
     pSmt->pThreadPEncCtx[iIdx].pWelsPEncCtx	= (void*) (*ppCtx);
     pSmt->pThreadPEncCtx[iIdx].iSliceIndex	= iIdx;
     pSmt->pThreadPEncCtx[iIdx].iThreadIndex	= iIdx;
@@ -767,7 +765,7 @@ int32_t WriteSliceBs (sWelsEncCtx* pCtx, uint8_t* pSliceBsBuf, const int32_t iSl
   return iReturn;
 }
 
-#if defined(__GNUC__) && !defined(_WIN32)
+#if !defined(_WIN32)
 WELS_THREAD_ROUTINE_TYPE UpdateMbListThreadProc (void* arg) {
   SSliceThreadPrivateData* pPrivateData	= (SSliceThreadPrivateData*)arg;
   sWelsEncCtx* pEncPEncCtx			= NULL;
@@ -806,7 +804,7 @@ WELS_THREAD_ROUTINE_TYPE UpdateMbListThreadProc (void* arg) {
 
   WELS_THREAD_ROUTINE_RETURN (uiThrdRet);
 }
-#endif//__GNUC__
+#endif//!_WIN32
 
 // thread process for coding one pSlice
 WELS_THREAD_ROUTINE_TYPE CodingSliceThreadProc (void* arg) {
@@ -1148,10 +1146,10 @@ int32_t CreateSliceThreads (sWelsEncCtx* pCtx) {
     // We need extra threads for update_mb_list_proc on __GNUC__ like OS (mac/linux)
     // due to WelsMultipleEventsWaitSingleBlocking implememtation can not work well
     // in case waiting pUpdateMbListEvent and pReadySliceCodingEvent events at the same time
-#if defined(__GNUC__) && !defined(_WIN32)
+#if !defined(_WIN32)
     WelsThreadCreate (&pCtx->pSliceThreading->pUpdateMbListThrdHandles[iIdx], UpdateMbListThreadProc,
                       &pCtx->pSliceThreading->pThreadPEncCtx[iIdx], 0);
-#endif//__GNUC__
+#endif//!_WIN32
 
     ++ iIdx;
   }
@@ -1234,11 +1232,7 @@ int32_t AdjustBaseLayer (sWelsEncCtx* pCtx) {
   iT0 = WelsTime() - iT0;
   if (pCtx->pSliceThreading->pFSliceDiff) {
     fprintf (pCtx->pSliceThreading->pFSliceDiff,
-#ifdef _WIN32
-             "%6I64d us adjust time at base spatial layer, iNeedAdj %d, DynamicAdjustSlicing()\n",
-#else
-             "%6lld us adjust time at base spatial layer, iNeedAdj %d, DynamicAdjustSlicing()\n",
-#endif//WIN32
+             "%6"PRId64" us adjust time at base spatial layer, iNeedAdj %d, DynamicAdjustSlicing()\n",
              iT0, iNeedAdj);
   }
 #endif//MT_DEBUG
@@ -1285,11 +1279,7 @@ int32_t AdjustEnhanceLayer (sWelsEncCtx* pCtx, int32_t iCurDid) {
   iT1 = WelsTime() - iT1;
   if (pCtx->pSliceThreading->pFSliceDiff) {
     fprintf (pCtx->pSliceThreading->pFSliceDiff,
-#ifdef _WIN32
-             "%6I64d us adjust time at spatial layer %d, iNeedAdj %d, DynamicAdjustSlicing()\n",
-#else
-             "%6lld us adjust time at spatial layer %d, iNeedAdj %d, DynamicAdjustSlicing()\n",
-#endif//WIN32
+             "%6"PRId64" us adjust time at spatial layer %d, iNeedAdj %d, DynamicAdjustSlicing()\n",
              iT1, iCurDid, iNeedAdj);
   }
 #endif//MT_DEBUG
