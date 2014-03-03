@@ -2948,9 +2948,7 @@ int32_t WelsEncoderEncodeParameterSets (sWelsEncCtx* pCtx, void* pDst) {
   pCtx->eLastNalPriority      = NRI_PRI_HIGHEST;
   pFbi->iLayerNum             = 1;
 
-#if defined(X86_ASM)
   WelsEmms();
-#endif //X86_ASM
 
   return ENC_RETURN_SUCCESS;
 }
@@ -3000,7 +2998,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
 
   pCtx->iEncoderError						= ENC_RETURN_SUCCESS;
   pFbi->iLayerNum	= 0;	// for initialization
-
+  pFbi->uiTimeStamp = pSrcPic->uiTimeStamp;
   // perform csc/denoise/downsample/padding, generate spatial layers
   iSpatialNum = pCtx->pVpp->BuildSpatialPicList (pCtx, &pSrcPic, 1);
   if (iSpatialNum < 1) {	// skip due to temporal layer settings (different frame rate)
@@ -3609,9 +3607,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
   pCtx->eLastNalPriority	= eNalRefIdc;
   pFbi->iLayerNum			= iLayerNum;
 
-#if defined(X86_ASM)
   WelsEmms();
-#endif //X86_ASM
 
   pFbi->eOutputFrameType = eFrameType;
   return ENC_RETURN_SUCCESS;

@@ -406,8 +406,14 @@ int CWelsH264SVCEncoder::Initialize2 (SWelsSvcCodingParam* pCfg) {
       m_iSrcListSize = 0;
       return cmMallocMemeError;
     }
-    InitPic (m_pSrcPicList[i], iColorspace, m_iMaxPicWidth, m_iMaxPicHeight);
-  }
+    if(InitPic (m_pSrcPicList[i], iColorspace, m_iMaxPicWidth, m_iMaxPicHeight))
+    {
+       WelsLog (m_pEncContext, WELS_LOG_ERROR,
+                 "CWelsH264SVCEncoder::Initialize(), InitPic Failed iColorspace= 0x%x\n", iColorspace);
+       Uninitialize();
+       return cmInitParaError;
+    }
+    }
 
   if (WelsInitEncoderExt (&m_pEncContext, pCfg)) {
     WelsLog (m_pEncContext, WELS_LOG_ERROR, "CWelsH264SVCEncoder::Initialize(), WelsInitEncoderExt failed.\n");
@@ -711,7 +717,13 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
         continue;
       }
 
-      InitPic (m_pSrcPicList[iPicIdx], iColorspace, m_iMaxPicWidth, m_iMaxPicHeight);
+      if(InitPic (m_pSrcPicList[iPicIdx], iColorspace, m_iMaxPicWidth, m_iMaxPicHeight))
+      {
+        WelsLog (m_pEncContext, WELS_LOG_INFO,
+                 "CWelsH264SVCEncoder::SetOption():ENCODER_OPTION_DATAFORMAT, iColorspace= 0x%x\n",
+                  iColorspace);
+        return cmInitParaError;
+      }
     }
     m_iCspInternal = iColorspace;
 #ifdef REC_FRAME_COUNT
@@ -746,7 +758,7 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
     int32_t iTargetWidth = 0;
     int32_t iTargetHeight = 0;
 
-    memcpy (&sEncodingParam, pOption, sizeof (SEncParamBase));	// confirmed_safe_unsafe_usage
+    memcpy (&sEncodingParam, pOption, sizeof (SEncParamExt));	// confirmed_safe_unsafe_usage
     WelsLog (m_pEncContext, WELS_LOG_INFO, "ENCODER_OPTION_SVC_ENCODE_PARAM_EXT, sEncodingParam.iInputCsp= 0x%x\n",
              sEncodingParam.iInputCsp);
     WelsLog (m_pEncContext, WELS_LOG_INFO,
@@ -810,7 +822,13 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
     }
     if (m_iCspInternal != iInputColorspace || m_iMaxPicWidth != iTargetWidth
         || m_iMaxPicHeight != iTargetHeight) {	// for color space due to changed
-      InitPic (m_pSrcPicList[0], iInputColorspace, iTargetWidth, iTargetHeight);
+      if(InitPic (m_pSrcPicList[0], iInputColorspace, iTargetWidth, iTargetHeight))
+      {
+        WelsLog (m_pEncContext, WELS_LOG_INFO,
+                "CWelsH264SVCEncoder::SetOption():ENCODER_OPTION_SVC_ENCODE_PARAM_EXT, iInputColorspace= 0x%x\n",
+                 iInputColorspace);
+          return cmInitParaError;
+      }
       m_iMaxPicWidth	= iTargetWidth;
       m_iMaxPicHeight	= iTargetHeight;
       m_iCspInternal	= iInputColorspace;
