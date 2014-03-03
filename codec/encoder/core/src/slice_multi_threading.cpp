@@ -59,9 +59,7 @@
 #include "crt_util_safe_x.h"	// for safe crt like calls
 #include "rc.h"
 
-#if defined(X86_ASM)
 #include "cpu.h"
-#endif//X86_ASM
 
 #include "measure_time.h"
 namespace WelsSVCEnc {
@@ -123,9 +121,7 @@ void CalcSliceComplexRatio (void* pRatio, SSliceCtx* pSliceCtx, uint32_t* pSlice
   const int32_t kiSliceCount	= pSliceCtx->iSliceNumInFrame;
   int32_t iSliceIdx			= 0;
 
-#if defined(X86_ASM)
   WelsEmms();
-#endif //X86_ASM
 
   while (iSliceIdx < kiSliceCount) {
     fAvI[iSliceIdx]	= 1.0f * pCountMbInSlice[iSliceIdx] / pSliceTime[iSliceIdx];
@@ -149,9 +145,7 @@ int32_t NeedDynamicAdjust (void* pConsumeTime, const int32_t iSliceNum) {
   int32_t iSliceIdx		= 0;
   int32_t iNeedAdj		= false;
 
-#if defined(X86_ASM)
   WelsEmms();
-#endif //X86_ASM
 
   while (iSliceIdx < iSliceNum) {
     uiTotalConsume += pSliceConsume[iSliceIdx] + pSliceConsume[1 + iSliceIdx];
@@ -235,9 +229,7 @@ void DynamicAdjustSlicing (sWelsEncCtx* pCtx,
 
   iMaximalMbNum	= kiCountNumMb - (kiCountSliceNum - 1) * iMinimalMbNum;
 
-#if defined(X86_ASM)
   WelsEmms();
-#endif //X86_ASM
 
 #if defined(ENABLE_TRACE_MT)
   WelsLog (pCtx, WELS_LOG_DEBUG, "[MT] DynamicAdjustSlicing(), iDid= %d, iCountNumMb= %d\n", iCurDid, kiCountNumMb);
@@ -435,7 +427,7 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
     err = WelsEventOpen (&pSmt->pReadySliceCodingEvent[iIdx], name);
 #if defined(ENABLE_TRACE_MT)
     WelsLog ((*ppCtx), WELS_LOG_INFO, "[MT] Open pReadySliceCodingEvent%d = 0x%p named(%s) ret%d err%d\n", iIdx,
-             (void*)pSmt->pReadySliceCodingEvent[iIdx], (void*) (*ppCtx), err, errno);
+             (void*)pSmt->pReadySliceCodingEvent[iIdx], name, err, errno);
 #endif
 #endif//_WIN32
 
@@ -863,7 +855,7 @@ WELS_THREAD_ROUTINE_TYPE CodingSliceThreadProc (void* arg) {
 #if defined(ENABLE_TRACE_MT)
     WelsLog (pEncPEncCtx, WELS_LOG_INFO,
              "[MT] CodingSliceThreadProc(), try to call WelsEventWait(pReadySliceCodingEvent[%d]= 0x%p), pEncPEncCtx= 0x%p!\n",
-             iEventIdx, (void*) (pEncPEncCtx->pReadySliceCodingEvent[iEventIdx]), (void*)pEncPEncCtx);
+             iEventIdx, (void*) (pEncPEncCtx->pSliceThreading->pReadySliceCodingEvent[iEventIdx]), (void*)pEncPEncCtx);
 #endif
     iWaitRet = WelsEventWait (pEncPEncCtx->pSliceThreading->pReadySliceCodingEvent[iEventIdx]);
 #endif//WIN32

@@ -108,12 +108,6 @@ WELS_THREAD_ERROR_CODE    WelsEventSignal (WELS_EVENT* event) {
   return WELS_THREAD_ERROR_GENERAL;
 }
 
-WELS_THREAD_ERROR_CODE    WelsEventReset (WELS_EVENT* event) {
-  if (ResetEvent (*event))
-    return WELS_THREAD_ERROR_OK;
-  return WELS_THREAD_ERROR_GENERAL;
-}
-
 WELS_THREAD_ERROR_CODE    WelsEventWait (WELS_EVENT* event) {
   return WaitForSingleObject (*event, INFINITE);
 }
@@ -258,7 +252,7 @@ WELS_THREAD_ERROR_CODE    WelsMutexDestroy (WELS_MUTEX* mutex) {
   return pthread_mutex_destroy (mutex);
 }
 
-// unnamed semaphores can not work well for posix threading models under not root users
+// unnamed semaphores aren't supported on OS X
 
 WELS_THREAD_ERROR_CODE    WelsEventInit (WELS_EVENT* event) {
   return sem_init (event, 0, 0);
@@ -268,7 +262,7 @@ WELS_THREAD_ERROR_CODE   WelsEventDestroy (WELS_EVENT* event) {
   return sem_destroy (event);	// match with sem_init
 }
 
-WELS_THREAD_ERROR_CODE    WelsEventOpen (WELS_EVENT** p_event, char* event_name) {
+WELS_THREAD_ERROR_CODE    WelsEventOpen (WELS_EVENT** p_event, const char* event_name) {
   if (p_event == NULL || event_name == NULL)
     return WELS_THREAD_ERROR_GENERAL;
   *p_event = sem_open (event_name, O_CREAT, (S_IRUSR | S_IWUSR)/*0600*/, 0);
@@ -280,7 +274,7 @@ WELS_THREAD_ERROR_CODE    WelsEventOpen (WELS_EVENT** p_event, char* event_name)
     return WELS_THREAD_ERROR_OK;
   }
 }
-WELS_THREAD_ERROR_CODE    WelsEventClose (WELS_EVENT* event, char* event_name) {
+WELS_THREAD_ERROR_CODE    WelsEventClose (WELS_EVENT* event, const char* event_name) {
   WELS_THREAD_ERROR_CODE err = sem_close (event);	// match with sem_open
   if (event_name)
     sem_unlink (event_name);
@@ -296,11 +290,6 @@ WELS_THREAD_ERROR_CODE   WelsEventSignal (WELS_EVENT* event) {
 //	sem_getvalue(event, &val);
 //	fprintf( stderr, "after signal it, val= %d..\n",val );
   return err;
-}
-WELS_THREAD_ERROR_CODE    WelsEventReset (WELS_EVENT* event) {
-  // FIXME for posix event reset, seems not be supported for pthread??
-  sem_close (event);
-  return sem_init (event, 0, 0);
 }
 
 WELS_THREAD_ERROR_CODE   WelsEventWait (WELS_EVENT* event) {
@@ -330,8 +319,9 @@ WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t 
 
     gettimeofday (&tv, 0);
 
-    ts.tv_sec = tv.tv_sec + dwMilliseconds / 1000;
-    ts.tv_nsec = tv.tv_usec * 1000 + (dwMilliseconds % 1000) * 1000000;
+    ts.tv_nsec = tv.tv_usec * 1000 + dwMilliseconds * 1000000;
+    ts.tv_sec = tv.tv_sec + ts.tv_nsec / 1000000000;
+    ts.tv_nsec %= 1000000000;
 
     return sem_timedwait (event, &ts);
 #endif//__APPLE__
