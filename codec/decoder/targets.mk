@@ -25,7 +25,6 @@ DECODER_CPP_SRCS=\
 
 DECODER_OBJS += $(DECODER_CPP_SRCS:.cpp=.o)
 
-ifeq ($(USE_ASM), Yes)
 ifeq ($(ASM_ARCH), x86)
 DECODER_ASM_SRCS=\
 	$(DECODER_SRCDIR)/core/asm/block_add.asm\
@@ -34,6 +33,14 @@ DECODER_ASM_SRCS=\
 
 DECODER_OBJS += $(DECODER_ASM_SRCS:.asm=.o)
 endif
+
+ifeq ($(ASM_ARCH), arm)
+DECODER_ASM_S_SRCS=\
+	$(DECODER_SRCDIR)/core/arm/block_add_neon.S\
+	$(DECODER_SRCDIR)/core/arm/intra_pred_neon.S\
+	$(DECODER_SRCDIR)/core/arm/mc_neon.S\
+
+DECODER_OBJS += $(DECODER_ASM_S_SRCS:.S=.o)
 endif
 
 OBJS += $(DECODER_OBJS)
@@ -42,6 +49,9 @@ $(DECODER_SRCDIR)/%.o: $(DECODER_SRCDIR)/%.cpp
 
 $(DECODER_SRCDIR)/%.o: $(DECODER_SRCDIR)/%.asm
 	$(QUIET_ASM)$(ASM) $(ASMFLAGS) $(ASM_INCLUDES) $(DECODER_ASMFLAGS) $(DECODER_ASM_INCLUDES) -o $@ $<
+
+$(DECODER_SRCDIR)/%.o: $(DECODER_SRCDIR)/%.S
+	$(QUIET_CCAS)$(CCAS) $(CFLAGS) $(ASMFLAGS) $(INCLUDES) $(DECODER_CFLAGS) $(DECODER_INCLUDES) -c -o $@ $<
 
 $(LIBPREFIX)decoder.$(LIBSUFFIX): $(DECODER_OBJS)
 	$(QUIET)rm -f $@

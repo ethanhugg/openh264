@@ -30,36 +30,26 @@
  *
  */
 
-#ifndef WELS_DECODE_MB_AUX_H__
-#define WELS_DECODE_MB_AUX_H__
+#ifdef APPLE_IOS
 
-#include "typedefs.h"
-#include "macros.h"
+.macro WELS_ASM_FUNC_BEGIN
+.align 2
+.arm
+.globl _$0
+_$0:
+.endm
 
-namespace WelsDec {
+#else
 
-void InitDctClipTable (void);
+.macro WELS_ASM_FUNC_BEGIN funcName
+.align 2
+.arm
+.global \funcName
+\funcName:
+.endm
 
-void IdctResAddPred_c (uint8_t* pPred, const int32_t kiStride, int16_t* pRs);
-
-#if defined(__cplusplus)
-extern "C" {
-#endif//__cplusplus
-
-#if defined(X86_ASM)
-void IdctResAddPred_mmx (uint8_t* pPred, const int32_t kiStride, int16_t* pRs);
-#endif//X86_ASM
-
-#if defined(HAVE_NEON)
-void IdctResAddPred_neon(uint8_t *pred, const int32_t stride, int16_t *rs);
 #endif
 
-#if defined(__cplusplus)
-}
-#endif//__cplusplus
-
-void GetI4LumaIChromaAddrTable (int32_t* pBlockOffset, const int32_t kiYStride, const int32_t kiUVStride);
-
-} // namespace WelsDec
-
-#endif//WELS_DECODE_MB_AUX_H__
+.macro WELS_ASM_FUNC_END
+mov pc, lr
+.endm

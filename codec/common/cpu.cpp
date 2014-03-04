@@ -38,7 +38,13 @@
  *************************************************************************************
  */
 #include <string.h>
-
+#include <stdio.h>
+#ifdef ANDROID_NDK
+#include <cpu-features.h>
+#endif
+#ifdef APPLE_IOS
+#include <sys/utsname.h>
+#endif
 #include "cpu.h"
 #include "cpu_core.h"
 
@@ -205,6 +211,93 @@ void WelsCPURestore (const uint32_t kuiCPU) {
 }
 
 void WelsXmmRegEmptyOp(void * pSrc) {
+}
+
+#elif defined(HAVE_NEON) //For supporting both android platform and iOS platform
+#if defined(ANDROID_NDK)
+uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors)
+{
+  uint32_t         uiCPU = 0;
+  AndroidCpuFamily cpuFamily = ANDROID_CPU_FAMILY_UNKNOWN;
+  uint64_t         uiFeatures = 0;
+  cpuFamily = android_getCpuFamily();
+  if (cpuFamily == ANDROID_CPU_FAMILY_ARM)	{
+    uiFeatures = android_getCpuFeatures();
+    if (uiFeatures & ANDROID_CPU_ARM_FEATURE_ARMv7){
+      uiCPU |= WELS_CPU_ARMv7;
+    }
+    if (uiFeatures & ANDROID_CPU_ARM_FEATURE_VFPv3){
+      uiCPU |= WELS_CPU_VFPv3;
+    }
+    if (uiFeatures & ANDROID_CPU_ARM_FEATURE_NEON){
+      uiCPU |= WELS_CPU_NEON;
+    }
+  }
+
+  if( pNumberOfLogicProcessors != NULL ){
+    *pNumberOfLogicProcessors = android_getCpuCount();
+  }
+
+  return uiCPU;
+}
+
+#elif defined(APPLE_IOS)
+uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors)
+{
+    uint32_t       uiCPU = 0;
+    struct utsname sSystemInfo;
+    uname (&sSystemInfo);
+
+    if ((0 != strcmp(sSystemInfo.machine, "iPhone1,1")) && //iPhone 2G
+        (0 != strcmp(sSystemInfo.machine, "iPhone1,2")) && //iPhone 3G
+        (0 != strcmp(sSystemInfo.machine, "iPod1,1")) &&   //iPod 1G
+        (0 != strcmp(sSystemInfo.machine, "iPod2,1")))     //iPod 2G
+    {
+        uiCPU |= WELS_CPU_ARMv7;
+        uiCPU |= WELS_CPU_VFPv3;
+        uiCPU |= WELS_CPU_NEON;
+    }
+    return uiCPU;
+}
+#elif defined(__linux__)
+
+/* Generic arm/linux cpu feature detection */
+uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors) {
+  FILE *f = fopen("/proc/cpuinfo", "r");
+
+  if (!f)
+    return 0;
+
+  char buf[200];
+  int flags = 0;
+  while (fgets(buf, sizeof(buf), f)) {
+    if (!strncmp(buf, "Features", strlen("Features"))) {
+      if (strstr(buf, " neon "))
+        flags |= WELS_CPU_NEON;
+      if (strstr(buf, " vfpv3 "))
+        flags |= WELS_CPU_VFPv3;
+      break;
+    }
+  }
+  fclose(f);
+  return flags;
+}
+
+#else /* HAVE_NEON enabled but no runtime detection */
+
+/* No runtime feature detection available, but built with HAVE_NEON - assume
+ * that NEON and all associated features are available. */
+
+uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors) {
+  return WELS_CPU_ARMv7 |
+         WELS_CPU_VFPv3 |
+         WELS_CPU_NEON;
+}
+#endif
+#else /* Neither X86_ASM nor HAVE_NEON */
+
+uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors) {
+  return 0;
 }
 
 #endif
