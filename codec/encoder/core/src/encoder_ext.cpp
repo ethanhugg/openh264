@@ -866,10 +866,6 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx) {
     pDqLayer->iLoopFilterDisableIdc	                = pParam->iLoopFilterDisableIdc;
     pDqLayer->iLoopFilterAlphaC0Offset				= (pParam->iLoopFilterAlphaC0Offset) << 1;
     pDqLayer->iLoopFilterBetaOffset					= (pParam->iLoopFilterBetaOffset) << 1;
-    //inter-layer deblocking
-    pDqLayer->uiDisableInterLayerDeblockingFilterIdc	= pParam->iInterLayerLoopFilterDisableIdc;
-    pDqLayer->iInterLayerSliceAlphaC0Offset				= (pParam->iInterLayerLoopFilterAlphaC0Offset) << 1;
-    pDqLayer->iInterLayerSliceBetaOffset				= (pParam->iInterLayerLoopFilterBetaOffset) << 1;
     //parallel deblocking
     pDqLayer->bDeblockingParallelFlag                  = pParam->bDeblockingParallelFlag;
 
@@ -896,11 +892,7 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx) {
   }
 
   // for dynamically malloc for parameter sets memory instead of maximal items for standard to reduce size, 3/18/2010
-  if (& (*ppCtx)->pSvcParam->bMgsT0OnlyStrategy) {
-    (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc ((1 + iDlayerCount) * sizeof (SWelsPPS), "pPPSArray");
-  } else {
-    (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc (iDlayerCount * sizeof (SWelsPPS), "pPPSArray");
-  }
+  (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc (iDlayerCount * sizeof (SWelsPPS), "pPPSArray");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pPPSArray), FreeMemorySvc (ppCtx))
 
   (*ppCtx)->pSpsArray	= (SWelsSPS*)pMa->WelsMalloc (sizeof (SWelsSPS), "pSpsArray");
@@ -3502,7 +3494,6 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
 
 #endif//MB_TYPES_CHECK
     {
-      //no pCtx->pSvcParam->bMgsT0OnlyStrategy
       ++ pCtx->sStatData[iCurDid][0].sSliceData.iSliceCount[pCtx->eSliceType];	// for multiple slices coding
       pCtx->sStatData[iCurDid][0].sSliceData.iSliceSize[pCtx->eSliceType]	+= (iLayerSize << 3);	// bits
     }
@@ -3710,9 +3701,6 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
     pNewParam->iLoopFilterDisableIdc					= WELS_CLIP3 (pNewParam->iLoopFilterDisableIdc, 0, 6);
     pNewParam->iLoopFilterAlphaC0Offset				= WELS_CLIP3 (pNewParam->iLoopFilterAlphaC0Offset, -6, 6);
     pNewParam->iLoopFilterBetaOffset					= WELS_CLIP3 (pNewParam->iLoopFilterBetaOffset, -6, 6);
-    pNewParam->iInterLayerLoopFilterDisableIdc		= WELS_CLIP3 (pNewParam->iInterLayerLoopFilterDisableIdc, 0, 6);
-    pNewParam->iInterLayerLoopFilterAlphaC0Offset	= WELS_CLIP3 (pNewParam->iInterLayerLoopFilterAlphaC0Offset, -6, 6);
-    pNewParam->iInterLayerLoopFilterBetaOffset		= WELS_CLIP3 (pNewParam->iInterLayerLoopFilterBetaOffset, -6, 6);
     pNewParam->fMaxFrameRate							= WELS_CLIP3 (pNewParam->fMaxFrameRate, MIN_FRAME_RATE, MAX_FRAME_RATE);
 
     // we can not use direct struct based memcpy due some fields need keep unchanged as before
@@ -3746,13 +3734,7 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
     pOldParam->iLoopFilterDisableIdc	= pNewParam->iLoopFilterDisableIdc;	// 0: on, 1: off, 2: on except for slice boundaries
     pOldParam->iLoopFilterAlphaC0Offset	= pNewParam->iLoopFilterAlphaC0Offset;// AlphaOffset: valid range [-6, 6], default 0
     pOldParam->iLoopFilterBetaOffset		= pNewParam->iLoopFilterBetaOffset;	// BetaOffset:	valid range [-6, 6], default 0
-    pOldParam->iInterLayerLoopFilterDisableIdc	=
-      pNewParam->iInterLayerLoopFilterDisableIdc; // Employed based upon inter-layer, same comment as above
-    pOldParam->iInterLayerLoopFilterAlphaC0Offset	=
-      pNewParam->iInterLayerLoopFilterAlphaC0Offset;	// InterLayerLoopFilterAlphaC0Offset
-    pOldParam->iInterLayerLoopFilterBetaOffset		=
-      pNewParam->iInterLayerLoopFilterBetaOffset;	// InterLayerLoopFilterBetaOffset
-
+   
     /* Rate Control */
     pOldParam->bEnableRc			= pNewParam->bEnableRc;
     pOldParam->iRCMode	    	= pNewParam->iRCMode;
