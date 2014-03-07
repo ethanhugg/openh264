@@ -131,8 +131,7 @@ int32_t ParamValidation (SWelsSvcCodingParam* pCfg) {
   return 0;
 }
 
-int32_t ParamValidationExt (void* pParam) {
-  SWelsSvcCodingParam* pCodingParam = (SWelsSvcCodingParam*)pParam;
+int32_t ParamValidationExt (SWelsSvcCodingParam* pCodingParam) {
   int8_t i = 0;
   int32_t iIdx = 0;
 
@@ -866,10 +865,6 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx) {
     pDqLayer->iLoopFilterDisableIdc	                = pParam->iLoopFilterDisableIdc;
     pDqLayer->iLoopFilterAlphaC0Offset				= (pParam->iLoopFilterAlphaC0Offset) << 1;
     pDqLayer->iLoopFilterBetaOffset					= (pParam->iLoopFilterBetaOffset) << 1;
-    //inter-layer deblocking
-    pDqLayer->uiDisableInterLayerDeblockingFilterIdc	= pParam->iInterLayerLoopFilterDisableIdc;
-    pDqLayer->iInterLayerSliceAlphaC0Offset				= (pParam->iInterLayerLoopFilterAlphaC0Offset) << 1;
-    pDqLayer->iInterLayerSliceBetaOffset				= (pParam->iInterLayerLoopFilterBetaOffset) << 1;
     //parallel deblocking
     pDqLayer->bDeblockingParallelFlag                  = pParam->bDeblockingParallelFlag;
 
@@ -896,11 +891,7 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx) {
   }
 
   // for dynamically malloc for parameter sets memory instead of maximal items for standard to reduce size, 3/18/2010
-  if (& (*ppCtx)->pSvcParam->bMgsT0OnlyStrategy) {
-    (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc ((1 + iDlayerCount) * sizeof (SWelsPPS), "pPPSArray");
-  } else {
-    (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc (iDlayerCount * sizeof (SWelsPPS), "pPPSArray");
-  }
+  (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc (iDlayerCount * sizeof (SWelsPPS), "pPPSArray");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pPPSArray), FreeMemorySvc (ppCtx))
 
   (*ppCtx)->pSpsArray	= (SWelsSPS*)pMa->WelsMalloc (sizeof (SWelsSPS), "pSpsArray");
@@ -2160,41 +2151,20 @@ void WelsUninitEncoderExt (sWelsEncCtx** ppCtx) {
     const int32_t iThreadCount = (*ppCtx)->pSvcParam->iCountThreadsNum;
     int32_t iThreadIdx = 0;
 
-#if defined(_WIN32)
     if ((*ppCtx)->pSliceThreading->pExitEncodeEvent != NULL) {
-      do {
-        if ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx] != NULL)	// iThreadIdx is already created successfully
+      while (iThreadIdx < iThreadCount) {
+        int res = 0;
+        if ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]) {
           WelsEventSignal (& (*ppCtx)->pSliceThreading->pExitEncodeEvent[iThreadIdx]);
+          WelsEventSignal (& (*ppCtx)->pSliceThreading->pThreadMasterEvent[iThreadIdx]);
+          res = WelsThreadJoin ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]);	// waiting thread exit
+          WelsLog (*ppCtx, WELS_LOG_INFO, "WelsUninitEncoderExt(), pthread_join(pThreadHandles%d) return %d..\n", iThreadIdx,
+                   res);
+          (*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx] = 0;
+        }
         ++ iThreadIdx;
-      } while (iThreadIdx < iThreadCount);
-
-      WelsMultipleEventsWaitAllBlocking (iThreadCount, & (*ppCtx)->pSliceThreading->pFinSliceCodingEvent[0]);
-
-    }
-#else
-    while (iThreadIdx < iThreadCount) {
-      int res = 0;
-      if ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]) {
-        res = WelsThreadCancel ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]);
-        WelsLog (*ppCtx, WELS_LOG_INFO, "WelsUninitEncoderExt(), WelsThreadCancel(pThreadHandles%d) return %d..\n", iThreadIdx,
-                 res);
-        res = WelsThreadJoin ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]);	// waiting thread exit
-        WelsLog (*ppCtx, WELS_LOG_INFO, "WelsUninitEncoderExt(), pthread_join(pThreadHandles%d) return %d..\n", iThreadIdx,
-                 res);
-        (*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx] = 0;
       }
-      if ((*ppCtx)->pSliceThreading->pUpdateMbListThrdHandles[iThreadIdx]) {
-        res = WelsThreadCancel ((*ppCtx)->pSliceThreading->pUpdateMbListThrdHandles[iThreadIdx]);
-        WelsLog (*ppCtx, WELS_LOG_INFO, "WelsUninitEncoderExt(), WelsThreadCancel(pUpdateMbListThrdHandles%d) return %d..\n",
-                 iThreadIdx, res);
-        res = WelsThreadJoin ((*ppCtx)->pSliceThreading->pUpdateMbListThrdHandles[iThreadIdx]);	// waiting thread exit
-        WelsLog (*ppCtx, WELS_LOG_INFO, "WelsUninitEncoderExt(), pthread_join(pUpdateMbListThrdHandles%d) return %d..\n",
-                 iThreadIdx, res);
-        (*ppCtx)->pSliceThreading->pUpdateMbListThrdHandles[iThreadIdx] = 0;
-      }
-      ++ iThreadIdx;
     }
-#endif//WIN32
   }
 #endif//MT_ENABLED
 
@@ -3225,6 +3195,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
           pCtx->iActiveThreadsNum	= iSliceCount;
           // to fire slice coding threads
           err = FiredSliceThreads (&pCtx->pSliceThreading->pThreadPEncCtx[0], &pCtx->pSliceThreading->pReadySliceCodingEvent[0],
+                                   &pCtx->pSliceThreading->pThreadMasterEvent[0],
                                    pLayerBsInfo, iSliceCount, pCtx->pCurDqLayer->pSliceEncCtx, false);
           if (err) {
             WelsLog (pCtx, WELS_LOG_ERROR,
@@ -3233,7 +3204,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
             return ENC_RETURN_UNEXPECTED;
           }
 
-          WelsMultipleEventsWaitAllBlocking (iSliceCount, &pCtx->pSliceThreading->pSliceCodedEvent[0]);
+          WelsMultipleEventsWaitAllBlocking (iSliceCount, &pCtx->pSliceThreading->pSliceCodedEvent[0], &pCtx->pSliceThreading->pSliceCodedMasterEvent);
 
 
           // all slices are finished coding here
@@ -3262,6 +3233,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
           iNumThreadsRunning		= iNumThreadsScheduled;
           // to fire slice coding threads
           err = FiredSliceThreads (&pCtx->pSliceThreading->pThreadPEncCtx[0], &pCtx->pSliceThreading->pReadySliceCodingEvent[0],
+                                   &pCtx->pSliceThreading->pThreadMasterEvent[0],
                                    pLayerBsInfo, iNumThreadsRunning, pCtx->pCurDqLayer->pSliceEncCtx, false);
           if (err) {
             WelsLog (pCtx, WELS_LOG_ERROR,
@@ -3274,13 +3246,12 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
           while (1) {
             if (iIndexOfSliceToBeCoded >= iSliceCount && iNumThreadsRunning <= 0)
               break;
-#ifdef _WIN32
             WELS_THREAD_ERROR_CODE lwait	= 0;
             int32_t iEventId				= -1;
 
             lwait = WelsMultipleEventsWaitSingleBlocking (iNumThreadsScheduled,
                     &pCtx->pSliceThreading->pSliceCodedEvent[0],
-                    (uint32_t) -1);
+                    &pCtx->pSliceThreading->pSliceCodedMasterEvent);
             iEventId = (int32_t) (lwait - WELS_THREAD_ERROR_WAIT_OBJECT_0);
             if (iEventId >= 0 && iEventId < iNumThreadsScheduled) {
               if (iIndexOfSliceToBeCoded < iSliceCount) {
@@ -3288,35 +3259,13 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
                 // thread_id equal to iEventId per implementation here
                 pCtx->pSliceThreading->pThreadPEncCtx[iEventId].iSliceIndex	= iIndexOfSliceToBeCoded;
                 WelsEventSignal (&pCtx->pSliceThreading->pReadySliceCodingEvent[iEventId]);
+                WelsEventSignal (&pCtx->pSliceThreading->pThreadMasterEvent[iEventId]);
 
                 ++ iIndexOfSliceToBeCoded;
               } else {	// no other slices left for coding
                 -- iNumThreadsRunning;
               }
             }
-#else
-            // TODO for pthread platforms
-            // alternate implementation using blocking due non-blocking with timeout mode not support at wels thread lib, tune back if available
-            WelsMultipleEventsWaitAllBlocking (iNumThreadsRunning, &pCtx->pSliceThreading->pSliceCodedEvent[0]);
-            WELS_VERIFY_RETURN_IFNEQ(pCtx->iEncoderError, ENC_RETURN_SUCCESS)
-            if (iIndexOfSliceToBeCoded < iSliceCount) {
-              int32_t iThreadIdx = 0;
-              // pick up succeeding slices for threading if left
-              while (iThreadIdx < iNumThreadsScheduled) {
-                if (iIndexOfSliceToBeCoded >= iSliceCount)
-                  break;
-                pCtx->pSliceThreading->pThreadPEncCtx[iThreadIdx].iSliceIndex = iIndexOfSliceToBeCoded;
-                WelsEventSignal (&pCtx->pSliceThreading->pReadySliceCodingEvent[iThreadIdx]);
-
-                ++ iIndexOfSliceToBeCoded;
-                ++ iThreadIdx;
-              }
-              // update iNumThreadsRunning
-              iNumThreadsRunning		= iThreadIdx;
-            } else {
-              iNumThreadsRunning = 0;
-            }
-#endif//_WIN32
           }//while(1)
 
           // all slices are finished coding here
@@ -3330,6 +3279,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
 
         // to fire slice coding threads
         err = FiredSliceThreads (&pCtx->pSliceThreading->pThreadPEncCtx[0], &pCtx->pSliceThreading->pReadySliceCodingEvent[0],
+                                 &pCtx->pSliceThreading->pThreadMasterEvent[0],
                                  pLayerBsInfo, kiPartitionCnt, pCtx->pCurDqLayer->pSliceEncCtx, true);
         if (err) {
           WelsLog (pCtx, WELS_LOG_ERROR,
@@ -3338,7 +3288,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
           return ENC_RETURN_UNEXPECTED;
         }
 
-        WelsMultipleEventsWaitAllBlocking (kiPartitionCnt, &pCtx->pSliceThreading->pSliceCodedEvent[0]);
+        WelsMultipleEventsWaitAllBlocking (kiPartitionCnt, &pCtx->pSliceThreading->pSliceCodedEvent[0], &pCtx->pSliceThreading->pSliceCodedMasterEvent);
         WELS_VERIFY_RETURN_IFNEQ(pCtx->iEncoderError, ENC_RETURN_SUCCESS)
 
         iLayerSize = AppendSliceToFrameBs (pCtx, pLayerBsInfo, kiPartitionCnt);
@@ -3502,7 +3452,6 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo * pFbi, const SSou
 
 #endif//MB_TYPES_CHECK
     {
-      //no pCtx->pSvcParam->bMgsT0OnlyStrategy
       ++ pCtx->sStatData[iCurDid][0].sSliceData.iSliceCount[pCtx->eSliceType];	// for multiple slices coding
       pCtx->sStatData[iCurDid][0].sSliceData.iSliceSize[pCtx->eSliceType]	+= (iLayerSize << 3);	// bits
     }
@@ -3710,9 +3659,6 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
     pNewParam->iLoopFilterDisableIdc					= WELS_CLIP3 (pNewParam->iLoopFilterDisableIdc, 0, 6);
     pNewParam->iLoopFilterAlphaC0Offset				= WELS_CLIP3 (pNewParam->iLoopFilterAlphaC0Offset, -6, 6);
     pNewParam->iLoopFilterBetaOffset					= WELS_CLIP3 (pNewParam->iLoopFilterBetaOffset, -6, 6);
-    pNewParam->iInterLayerLoopFilterDisableIdc		= WELS_CLIP3 (pNewParam->iInterLayerLoopFilterDisableIdc, 0, 6);
-    pNewParam->iInterLayerLoopFilterAlphaC0Offset	= WELS_CLIP3 (pNewParam->iInterLayerLoopFilterAlphaC0Offset, -6, 6);
-    pNewParam->iInterLayerLoopFilterBetaOffset		= WELS_CLIP3 (pNewParam->iInterLayerLoopFilterBetaOffset, -6, 6);
     pNewParam->fMaxFrameRate							= WELS_CLIP3 (pNewParam->fMaxFrameRate, MIN_FRAME_RATE, MAX_FRAME_RATE);
 
     // we can not use direct struct based memcpy due some fields need keep unchanged as before
@@ -3746,13 +3692,7 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
     pOldParam->iLoopFilterDisableIdc	= pNewParam->iLoopFilterDisableIdc;	// 0: on, 1: off, 2: on except for slice boundaries
     pOldParam->iLoopFilterAlphaC0Offset	= pNewParam->iLoopFilterAlphaC0Offset;// AlphaOffset: valid range [-6, 6], default 0
     pOldParam->iLoopFilterBetaOffset		= pNewParam->iLoopFilterBetaOffset;	// BetaOffset:	valid range [-6, 6], default 0
-    pOldParam->iInterLayerLoopFilterDisableIdc	=
-      pNewParam->iInterLayerLoopFilterDisableIdc; // Employed based upon inter-layer, same comment as above
-    pOldParam->iInterLayerLoopFilterAlphaC0Offset	=
-      pNewParam->iInterLayerLoopFilterAlphaC0Offset;	// InterLayerLoopFilterAlphaC0Offset
-    pOldParam->iInterLayerLoopFilterBetaOffset		=
-      pNewParam->iInterLayerLoopFilterBetaOffset;	// InterLayerLoopFilterBetaOffset
-
+   
     /* Rate Control */
     pOldParam->bEnableRc			= pNewParam->bEnableRc;
     pOldParam->iRCMode	    	= pNewParam->iRCMode;

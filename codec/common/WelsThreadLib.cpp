@@ -55,9 +55,13 @@
 #define HW_NCPU_NAME "hw.ncpu"
 #endif
 #endif
+#ifdef ANDROID_NDK
+#include <cpu-features.h>
+#endif
 
 #include "WelsThreadLib.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef MT_ENABLED
 
@@ -91,7 +95,7 @@ WELS_THREAD_ERROR_CODE    WelsMutexDestroy (WELS_MUTEX* mutex) {
   return WELS_THREAD_ERROR_OK;
 }
 
-WELS_THREAD_ERROR_CODE    WelsEventInit (WELS_EVENT*    event) {
+WELS_THREAD_ERROR_CODE    WelsEventOpen (WELS_EVENT* event, const char* event_name) {
   WELS_EVENT   h = CreateEvent (NULL, FALSE, FALSE, NULL);
 
   if (h == NULL) {
@@ -117,16 +121,18 @@ WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t 
 }
 
 WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitSingleBlocking (uint32_t nCount,
-    WELS_EVENT* event_list,
-    uint32_t dwMilliseconds) {
-  return WaitForMultipleObjects (nCount, event_list, FALSE, dwMilliseconds);
+    WELS_EVENT* event_list, WELS_EVENT* master_event) {
+  // Don't need/use the master event for anything, since windows has got WaitForMultipleObjects
+  return WaitForMultipleObjects (nCount, event_list, FALSE, INFINITE);
 }
 
-WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount, WELS_EVENT* event_list) {
+WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount,
+    WELS_EVENT* event_list, WELS_EVENT* master_event) {
+  // Don't need/use the master event for anything, since windows has got WaitForMultipleObjects
   return WaitForMultipleObjects (nCount, event_list, TRUE, INFINITE);
 }
 
-WELS_THREAD_ERROR_CODE    WelsEventDestroy (WELS_EVENT* event) {
+WELS_THREAD_ERROR_CODE    WelsEventClose (WELS_EVENT* event, const char* event_name) {
   CloseHandle (*event);
 
   *event = NULL;
@@ -146,29 +152,13 @@ WELS_THREAD_ERROR_CODE    WelsThreadCreate (WELS_THREAD_HANDLE* thread,  LPWELS_
   return WELS_THREAD_ERROR_OK;
 }
 
-WELS_THREAD_ERROR_CODE	  WelsSetThreadCancelable() {
-  // nil implementation for WIN32
-  return WELS_THREAD_ERROR_OK;
-}
-
 WELS_THREAD_ERROR_CODE    WelsThreadJoin (WELS_THREAD_HANDLE  thread) {
   WaitForSingleObject (thread, INFINITE);
+  CloseHandle (thread);
 
   return WELS_THREAD_ERROR_OK;
 }
 
-WELS_THREAD_ERROR_CODE    WelsThreadCancel (WELS_THREAD_HANDLE  thread) {
-  return WELS_THREAD_ERROR_OK;
-}
-
-
-WELS_THREAD_ERROR_CODE    WelsThreadDestroy (WELS_THREAD_HANDLE* thread) {
-  if (thread != NULL) {
-    CloseHandle (*thread);
-    *thread = NULL;
-  }
-  return WELS_THREAD_ERROR_OK;
-}
 
 WELS_THREAD_HANDLE        WelsThreadSelf() {
   return GetCurrentThread();
@@ -211,23 +201,8 @@ WELS_THREAD_ERROR_CODE    WelsThreadCreate (WELS_THREAD_HANDLE* thread,  LPWELS_
   return err;
 }
 
-WELS_THREAD_ERROR_CODE	  WelsSetThreadCancelable() {
-  WELS_THREAD_ERROR_CODE err = pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
-  if (0 == err)
-    err = pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
-  return err;
-}
-
 WELS_THREAD_ERROR_CODE    WelsThreadJoin (WELS_THREAD_HANDLE  thread) {
   return pthread_join (thread, NULL);
-}
-
-WELS_THREAD_ERROR_CODE    WelsThreadCancel (WELS_THREAD_HANDLE  thread) {
-  return pthread_cancel (thread);
-}
-
-WELS_THREAD_ERROR_CODE    WelsThreadDestroy (WELS_THREAD_HANDLE* thread) {
-  return WELS_THREAD_ERROR_OK;
 }
 
 WELS_THREAD_HANDLE        WelsThreadSelf() {
@@ -252,15 +227,8 @@ WELS_THREAD_ERROR_CODE    WelsMutexDestroy (WELS_MUTEX* mutex) {
 
 // unnamed semaphores aren't supported on OS X
 
-WELS_THREAD_ERROR_CODE    WelsEventInit (WELS_EVENT* event) {
-  return sem_init (*event, 0, 0);
-}
-
-WELS_THREAD_ERROR_CODE   WelsEventDestroy (WELS_EVENT* event) {
-  return sem_destroy (*event);	// match with sem_init
-}
-
 WELS_THREAD_ERROR_CODE    WelsEventOpen (WELS_EVENT* p_event, const char* event_name) {
+#ifdef __APPLE__
   if (p_event == NULL || event_name == NULL)
     return WELS_THREAD_ERROR_GENERAL;
   *p_event = sem_open (event_name, O_CREAT, (S_IRUSR | S_IWUSR)/*0600*/, 0);
@@ -271,12 +239,30 @@ WELS_THREAD_ERROR_CODE    WelsEventOpen (WELS_EVENT* p_event, const char* event_
   } else {
     return WELS_THREAD_ERROR_OK;
   }
+#else
+  WELS_EVENT event = (WELS_EVENT) malloc(sizeof(*event));
+  if (event == NULL)
+    return WELS_THREAD_ERROR_GENERAL;
+  WELS_THREAD_ERROR_CODE err = sem_init(event, 0, 0);
+  if (!err) {
+    *p_event = event;
+    return err;
+  }
+  free(event);
+  return err;
+#endif
 }
 WELS_THREAD_ERROR_CODE    WelsEventClose (WELS_EVENT* event, const char* event_name) {
+#ifdef __APPLE__
   WELS_THREAD_ERROR_CODE err = sem_close (*event);	// match with sem_open
   if (event_name)
     sem_unlink (event_name);
   return err;
+#else
+  WELS_THREAD_ERROR_CODE err = sem_destroy (*event);	// match with sem_init
+  free(*event);
+  return err;
+#endif
 }
 
 WELS_THREAD_ERROR_CODE   WelsEventSignal (WELS_EVENT* event) {
@@ -327,13 +313,24 @@ WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t 
 }
 
 WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitSingleBlocking (uint32_t nCount,
-    WELS_EVENT* event_list,
-    uint32_t dwMilliseconds) {
+    WELS_EVENT* event_list, WELS_EVENT* master_event) {
   uint32_t nIdx = 0;
-  const uint32_t kuiAccessTime = 2;	// 2 us once
+  uint32_t uiAccessTime = 2;	// 2 us once
 
   if (nCount == 0)
     return WELS_THREAD_ERROR_WAIT_FAILED;
+
+  if (master_event != NULL) {
+    // This design relies on the events actually being semaphores;
+    // if multiple events in the list have been signalled, the master
+    // event should have a similar count (events in windows can't keep
+    // track of the actual count, but the master event isn't needed there
+    // since it uses WaitForMultipleObjects).
+    int32_t err = sem_wait (*master_event);
+    if (err != WELS_THREAD_ERROR_OK)
+      return err;
+    uiAccessTime = 0; // no blocking, just quickly loop through all to find the one that was signalled
+  }
 
   while (1) {
     nIdx = 0;	// access each event by order
@@ -349,21 +346,30 @@ WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitSingleBlocking (uint32_t nCount,
         err = sem_trywait (event_list[nIdx]);
         if (WELS_THREAD_ERROR_OK == err)
           return WELS_THREAD_ERROR_WAIT_OBJECT_0 + nIdx;
-        else if (wait_count > 0)
+        else if (wait_count > 0 || uiAccessTime == 0)
           break;
-        usleep (kuiAccessTime);
+        usleep (uiAccessTime);
         ++ wait_count;
       } while (1);
       // we do need access next event next time
       ++ nIdx;
     }
     usleep (1);	// switch to working threads
+    if (master_event != NULL) {
+      // A master event was used and was signalled, but none of the events in the
+      // list was found to be signalled, thus wait a little more when rechecking
+      // the list to avoid busylooping here.
+      // If we ever hit this codepath it's mostly a bug in the code that signals
+      // the events.
+      uiAccessTime = 2;
+    }
   }
 
   return WELS_THREAD_ERROR_WAIT_FAILED;
 }
 
-WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount, WELS_EVENT* event_list) {
+WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount,
+    WELS_EVENT* event_list, WELS_EVENT* master_event) {
   uint32_t nIdx = 0;
   uint32_t uiCountSignals = 0;
   uint32_t uiSignalFlag	= 0;	// UGLY: suppose maximal event number up to 32
@@ -379,7 +385,21 @@ WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount, WE
       if ((uiSignalFlag & kuiBitwiseFlag) != kuiBitwiseFlag) { // non-blocking mode
         int32_t err = 0;
 //				fprintf( stderr, "sem_wait(): start to wait event %d..\n", nIdx );
-        err = sem_wait (event_list[nIdx]);
+        if (master_event == NULL) {
+          err = sem_wait (event_list[nIdx]);
+        } else {
+          err = sem_wait (*master_event);
+          if (err == WELS_THREAD_ERROR_OK) {
+            err = sem_wait (event_list[nIdx]);
+            if (err != WELS_THREAD_ERROR_OK) {
+              // We successfully waited for the master event,
+              // but waiting for the individual event failed (e.g. EINTR?).
+              // Increase the master event count so that the next retry will
+              // work as intended.
+              sem_post (*master_event);
+            }
+          }
+        }
 //				fprintf( stderr, "sem_wait(): wait event %d result %d errno %d..\n", nIdx, err, errno );
         if (WELS_THREAD_ERROR_OK == err) {
 //					int32_t val = 0;
@@ -402,7 +422,10 @@ WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount, WE
 }
 
 WELS_THREAD_ERROR_CODE    WelsQueryLogicalProcessInfo (WelsLogicalProcessInfo* pInfo) {
-#ifdef LINUX
+#ifdef ANDROID_NDK
+  pInfo->ProcessorCount = android_getCpuCount();
+  return WELS_THREAD_ERROR_OK;
+#elif defined(LINUX)
 
   cpu_set_t cpuset;
 
