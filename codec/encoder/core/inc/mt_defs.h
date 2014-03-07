@@ -94,16 +94,12 @@ SSliceThreadPrivateData*	pThreadPEncCtx;// thread context, [iThreadIdx]
 char eventNamespace[100];
 WELS_THREAD_HANDLE			pThreadHandles[MAX_THREADS_NUM];// thread handles, [iThreadIdx]
 WELS_EVENT					pSliceCodedEvent[MAX_THREADS_NUM];// events for slice coded state, [iThreadIdx]
+WELS_EVENT					pSliceCodedMasterEvent;	// events for signalling that some event in pSliceCodedEvent has been signalled
 WELS_EVENT					pReadySliceCodingEvent[MAX_THREADS_NUM];	// events for slice coding ready, [iThreadIdx]
 WELS_EVENT					pUpdateMbListEvent[MAX_THREADS_NUM];		// signal to update mb list neighbor for various slices
 WELS_EVENT					pFinUpdateMbListEvent[MAX_THREADS_NUM];	// signal to indicate finish updating mb list
-#ifdef _WIN32
-WELS_EVENT					pFinSliceCodingEvent[MAX_THREADS_NUM];	// notify slice coding thread is done
 WELS_EVENT					pExitEncodeEvent[MAX_THREADS_NUM];			// event for exit encoding event
-#else
-
-WELS_THREAD_HANDLE			pUpdateMbListThrdHandles[MAX_THREADS_NUM];	// thread handles for update mb list thread, [iThreadIdx]
-#endif//_WIN32
+WELS_EVENT					pThreadMasterEvent[MAX_THREADS_NUM];	// event for indicating that some event has been signalled to the thread
 
 WELS_MUTEX					mutexSliceNumUpdate;	// for dynamic slicing mode MT
 

@@ -111,19 +111,14 @@ WELS_THREAD_ERROR_CODE    WelsEventSignal (WELS_EVENT* event);
 WELS_THREAD_ERROR_CODE    WelsEventWait (WELS_EVENT* event);
 WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t dwMilliseconds);
 WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitSingleBlocking (uint32_t nCount, WELS_EVENT* event_list,
-    uint32_t dwMilliseconds);
-WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount, WELS_EVENT* event_list);
+    WELS_EVENT* master_event = NULL);
+WELS_THREAD_ERROR_CODE    WelsMultipleEventsWaitAllBlocking (uint32_t nCount, WELS_EVENT* event_list,
+    WELS_EVENT* master_event = NULL);
 
 WELS_THREAD_ERROR_CODE    WelsThreadCreate (WELS_THREAD_HANDLE* thread,  LPWELS_THREAD_ROUTINE  routine,
     void* arg, WELS_THREAD_ATTR attr);
 
-WELS_THREAD_ERROR_CODE	  WelsSetThreadCancelable();
-
 WELS_THREAD_ERROR_CODE    WelsThreadJoin (WELS_THREAD_HANDLE  thread);
-
-WELS_THREAD_ERROR_CODE    WelsThreadCancel (WELS_THREAD_HANDLE  thread);
-
-WELS_THREAD_ERROR_CODE    WelsThreadDestroy (WELS_THREAD_HANDLE* thread);
 
 WELS_THREAD_HANDLE        WelsThreadSelf();
 
