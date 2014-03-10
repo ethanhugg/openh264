@@ -103,6 +103,7 @@ static int     g_iCtrlC = 0;
 static void    SigIntHandler (int a) {
   g_iCtrlC = 1;
 }
+static int     g_LevelSetting = 0;
 
 int ParseLayerConfig( CReadConfig cRdLayerCfg, const int iLayer, SEncParamExt& pSvcParam )
 {
@@ -164,7 +165,7 @@ int ParseLayerConfig( CReadConfig cRdLayerCfg, const int iLayer, SEncParamExt& p
       } else if (strTag[0].compare ("InitialQP") == 0) {
         sLayerCtx.iDLayerQp	= atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("SliceMode") == 0) {
-        sLayerCtx.sSliceCfg.uiSliceMode	= (SliceMode)atoi (strTag[1].c_str());
+        sLayerCtx.sSliceCfg.uiSliceMode	= (SliceModeEnum)atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("SliceSize") == 0) { //SM_DYN_SLICE
         sLayerCtx.sSliceCfg.sSliceArgument.uiSliceSizeConstraint	= atoi (strTag[1].c_str());
         continue;
@@ -200,12 +201,12 @@ int ParseConfig (CReadConfig& cRdCfg, SSourcePicture* pSrcPic, SEncParamExt& pSv
       if (strTag[0].empty())
         continue;
 	  if (strTag[0].compare ("SourceWidth") == 0) {
-      pSrcPic->iPicWidth = atoi (strTag[1].c_str());
-    } else if (strTag[0].compare ("SourceHeight") == 0) {
-      pSrcPic->iPicHeight = atoi (strTag[1].c_str());
-    } else if (strTag[0].compare ("InputFile") == 0) {
-		   if (strTag[1].length() > 0)
-            sFileSet.strSeqFile	= strTag[1];
+        pSrcPic->iPicWidth = atoi (strTag[1].c_str());
+      } else if (strTag[0].compare ("SourceHeight") == 0) {
+        pSrcPic->iPicHeight = atoi (strTag[1].c_str());
+      } else if (strTag[0].compare ("InputFile") == 0) {
+	    if (strTag[1].length() > 0)
+          sFileSet.strSeqFile	= strTag[1];
       } else if (strTag[0].compare ("OutputFile") == 0) {
         sFileSet.strBsFile	= strTag[1];
       } else if (strTag[0].compare ("MaxFrameRate") == 0) {
@@ -365,7 +366,7 @@ int ParseCommandLine (int argc, char** argv, SEncParamExt& sParam) {
     }
 
     else if (!strcmp (pCmd, "-trace") && (i < argc))
-      WelsStderrSetTraceLevel (atoi (argv[i++]));
+      g_LevelSetting = atoi (argv[i++]);
 
     else if (!strcmp (pCmd, "-dw") && (i < argc))
       sParam.iPicWidth = atoi (argv[i++]);
@@ -468,7 +469,7 @@ int ParseCommandLine (int argc, char** argv, SSourcePicture* pSrcPic, SEncParamE
       pSvcParam.bEnableRc = atoi (argv[n++]) ? true : false;
 
     else if (!strcmp (pCommand, "-trace") && (n < argc))
-      WelsStderrSetTraceLevel (atoi (argv[n++]));
+      g_LevelSetting = atoi (argv[n++]);
 
     else if (!strcmp (pCommand, "-tarb") && (n < argc))
       pSvcParam.iTargetBitrate = atoi (argv[n++]);
@@ -601,7 +602,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 7.5f;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 64000;
 #ifdef MT_ENABLED
-  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
+  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = SM_SINGLE_SLICE;
 #endif
 
   ++ iIndexLayer;
@@ -610,7 +611,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 15.0f;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 160000;
 #ifdef MT_ENABLED
-  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
+  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = SM_SINGLE_SLICE;
 #endif
 
   ++ iIndexLayer;
@@ -619,7 +620,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 30.0f;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 512000;
 #ifdef MT_ENABLED
-  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
+  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = SM_SINGLE_SLICE;
   sParam.sSpatialLayers[iIndexLayer].sSliceCfg.sSliceArgument.uiSliceNum = 1;
 #endif
 
@@ -629,7 +630,7 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.sSpatialLayers[iIndexLayer].fFrameRate	= 30.0f;
   sParam.sSpatialLayers[iIndexLayer].iSpatialBitrate		= 1500000;
 #ifdef MT_ENABLED
-  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = 0;
+  sParam.sSpatialLayers[iIndexLayer].sSliceCfg.uiSliceMode = SM_SINGLE_SLICE;
   sParam.sSpatialLayers[iIndexLayer].sSliceCfg.sSliceArgument.uiSliceNum = 1;
 #endif
 
@@ -688,7 +689,7 @@ int ProcessEncodingSvcWithParam (ISVCEncoder* pPtrEnc, int argc, char** argv) {
     ret = 1;
     goto ERROR_RET;
   }
-
+  pPtrEnc->SetOption(ENCODER_OPTION_TRACE_LEVEL,&g_LevelSetting);
   if (cmResultSuccess != pPtrEnc->InitializeExt (&sSvcParam)) {
     fprintf (stderr, "Encoder Initialization failed!\n");
 	ret = 1;

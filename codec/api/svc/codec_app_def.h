@@ -90,7 +90,8 @@ typedef enum {
   ENCODER_OPTION_ENABLE_SPS_PPS_ID_ADDITION, //disable pSps/pPps id addition: true--disable pSps/pPps id; false--enable pSps/pPps id addistion
 
   ENCODER_OPTION_CURRENT_PATH,
-  ENCODER_OPTION_DUMP_FILE
+  ENCODER_OPTION_DUMP_FILE,
+  ENCODER_OPTION_TRACE_LEVEL
 } ENCODER_OPTION;
 
 /* Option types introduced in decoder application */
@@ -163,7 +164,7 @@ typedef enum {
 } SliceModeEnum;
 
 typedef struct {
-  unsigned int uiSliceMode; //by default, uiSliceMode will be 0
+  SliceModeEnum uiSliceMode; //by default, uiSliceMode will be SM_SINGLE_SLICE
   SSliceArgument sSliceArgument;
 } SSliceConfig;
 
