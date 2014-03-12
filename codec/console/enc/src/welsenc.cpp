@@ -105,7 +105,7 @@ static void    SigIntHandler (int a) {
 }
 static int     g_LevelSetting = 0;
 
-int ParseLayerConfig( CReadConfig cRdLayerCfg, const int iLayer, SEncParamExt& pSvcParam )
+int ParseLayerConfig( CReadConfig & cRdLayerCfg, const int iLayer, SEncParamExt& pSvcParam )
 {
   if (!cRdLayerCfg.ExistFile()) {
     fprintf (stderr, "Unabled to open layer #%d configuration file: %s.\n", iLayer, cRdLayerCfg.GetFileName().c_str());
@@ -849,7 +849,7 @@ int ProcessEncodingSvcWithConfig (ISVCEncoder* pPtrEnc, int argc, char** argv) {
 
   memset (&sFbi, 0, sizeof (SFrameBSInfo));
   memset (&sSvcParam, 0, sizeof (SEncParamExt));
-  memset (&fs,0,sizeof(SFilesSet));
+  memset (&fs.sRecFileName[0][0],0,sizeof(fs.sRecFileName));
   sSvcParam.iInputCsp	= videoFormatI420;	// I420 in default
   sSvcParam.sSpatialLayers[0].uiProfileIdc	= PRO_BASELINE;
 //	svc_cfg->sDependencyLayers[0].frext_mode	= 0;
