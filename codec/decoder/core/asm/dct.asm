@@ -47,9 +47,9 @@
 ;*******************************************************************************
 %macro MMX_SumSubDiv2 3
     movq    %3, %2
-    psraw   %3, $1
+    psraw   %3, $01
     paddw   %3, %1
-    psraw   %1, $1
+    psraw   %1, $01
     psubw   %1, %2
 %endmacro
 
@@ -71,7 +71,7 @@
     movd       %2, %5
     punpcklbw  %2, %4
     paddw      %1, %3
-    psraw      %1, $6
+    psraw      %1, $06
     paddsw     %1, %2
     packuswb   %1, %2
     movd       %5, %1
@@ -93,9 +93,7 @@ ALIGN 16
 IdctResAddPred_mmx:
     %assign push_num 0
     LOAD_3_PARA
-	%ifndef X86_32
-	movsx r1, r1d
-	%endif
+    SIGN_EXTENSION r1, r1d
     movq    mm0, [r2+ 0]
     movq    mm1, [r2+ 8]
     movq    mm2, [r2+16]

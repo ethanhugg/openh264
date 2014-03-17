@@ -56,17 +56,10 @@ ALIGN    16
 ;  void WelsResBlockZero16x16_sse2(int16_t* pBlock,int32_t iStride)
 ;*******************************************************************************
 WelsResBlockZero16x16_sse2:
-        ;push     r0
         %assign push_num 0
         LOAD_2_PARA
-		%ifndef X86_32
-		movsx r1, r1d
-		%endif
-	;mov      r0,        [esp+08h]
-	;mov      r1,        [esp+0ch]
-	;lea      r1,        [r1*2]
+	SIGN_EXTENSION r1, r1d
         lea 	r1, 	[r1*2]
-	;lea      r2,        [r1*3]
         lea 	r2,	[r1*3]
 
 	pxor     xmm7,       xmm7
@@ -126,7 +119,6 @@ WelsResBlockZero16x16_sse2:
 	movdqa   [r0+r2],     xmm7
 	movdqa   [r0+r2+10h],     xmm7
 
-    ;pop      r0
 	ret
 
 
@@ -137,14 +129,9 @@ ALIGN    16
 ;  void WelsResBlockZero8x8_sse2(int16_t * pBlock, int32_t iStride)
 ;*******************************************************************************
 WelsResBlockZero8x8_sse2:
-	  ;push      r0
 	  %assign push_num 0
           LOAD_2_PARA
-		  %ifndef X86_32
-		  movsx r1, r1d
-		  %endif
-      	  ;mov       r0,     [esp+08h]
-	  ;mov       r1,     [esp+0ch]
+	  SIGN_EXTENSION r1, r1d
 	  lea       r1,     [r1*2]
 	  lea       r2,     [r1*3]
 
@@ -162,6 +149,5 @@ WelsResBlockZero8x8_sse2:
 	  movdqa    [r0+r2],     xmm7
 
 
-	  ;pop       r0
 	  ret
 

@@ -203,9 +203,7 @@ WelsI4x4LumaPredH_sse2:
 	push r3
 	%assign push_num 1
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	movzx		r3,	byte [r1-1]
 	movd		xmm0,	r3d
 	pmuludq		xmm0,	[mmx_01bytes]
@@ -236,17 +234,11 @@ WelsI4x4LumaPredH_sse2:
 ; void WelsI16x16LumaPredPlane_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride);
 ;***********************************************************************
 WelsI16x16LumaPredPlane_sse2:
-		;%define pushsize	4
-		;push	esi
-		;mov		esi,	[esp + pushsize + 8]
-		;mov		ecx,	[esp + pushsize + 12]
 		push r3
 		push r4
 		%assign push_num 2
 		LOAD_3_PARA
-		%ifndef X86_32
-		movsx r2, r2d
-		%endif
+		SIGN_EXTENSION r2, r2d
 		sub		r1,	1
 		sub		r1,	r2
 
@@ -297,7 +289,6 @@ WelsI16x16LumaPredPlane_sse2:
 		sar		r3,	6				; c = (5 * V + 32) >> 6;
 		SSE2_Copy8Times	xmm4, r3d		; xmm4 = c,c,c,c,c,c,c,c
 
-		;mov		esi,	[esp + pushsize + 4]
 		add		r4,	16
 		imul	r3,	-7
 		add		r3,	r4				; s = a + 16 + (-7)*c
@@ -343,9 +334,7 @@ WelsI16x16LumaPredH_sse2:
 	push r3
 	%assign push_num 1
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	dec r1
 	movzx r3, byte [r1]
 	SSE2_Copy16Times xmm0, r3d
@@ -373,14 +362,9 @@ WelsI16x16LumaPredH_sse2:
 ;***********************************************************************
 WELS_EXTERN WelsI16x16LumaPredV_sse2
 WelsI16x16LumaPredV_sse2:
-    ;mov     edx, [esp+4]    ; pred
-    ;mov     eax, [esp+8]	; pRef
-    ;mov     ecx, [esp+12]   ; stride
     %assign push_num 0
     LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+    SIGN_EXTENSION r2, r2d
     sub     r1, r2
     movdqa  xmm0, [r1]
 
@@ -408,17 +392,11 @@ WelsI16x16LumaPredV_sse2:
 ;***********************************************************************
 WELS_EXTERN WelsIChromaPredPlane_sse2
 WelsIChromaPredPlane_sse2:
-		;%define pushsize	4
-		;push	esi
-		;mov		esi,	[esp + pushsize + 8]	;pRef
-		;mov		ecx,	[esp + pushsize + 12]	;stride
 		push r3
 		push r4
 		%assign push_num 2
 		LOAD_3_PARA
-		%ifndef X86_32
-		movsx r2, r2d
-		%endif
+		SIGN_EXTENSION r2, r2d
 		sub		r1,	1
 		sub		r1,	r2
 
@@ -472,7 +450,6 @@ WelsIChromaPredPlane_sse2:
 		sar		r3,	5				; c = (17 * V + 16) >> 5;
 		SSE2_Copy8Times	xmm4, r3d	; mm4 = c,c,c,c,c,c,c,c
 
-		;mov		esi,	[esp + pushsize + 4]
 		add		r4,	16
 		imul	r3,	-3
 		add		r3,	r4		; s = a + 16 + (-3)*c
@@ -512,14 +489,9 @@ ALIGN 16
 ;
 ;***********************************************************************
 WelsI4x4LumaPredDDR_mmx:
-	;mov			edx,[esp+4]			;pred
-	;mov         eax,[esp+8]			;pRef
-	;mov			ecx,[esp+12]		;stride
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	movq        mm1,[r1+r2-8]		;get value of 11,decreasing 8 is trying to improve the performance of movq mm1[8] = 11
 	movq        mm2,[r1-8]			;get value of 6 mm2[8] = 6
 	sub		r1, r2			;mov eax to above line of current block(postion of 1)
@@ -575,9 +547,7 @@ WelsI4x4LumaPredDc_sse2:
 	push r4
 	%assign push_num 2
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	movzx		r4,	byte [r1-1h]
 	sub			r1,	r2
 	movd		xmm0,	[r1]
@@ -633,14 +603,9 @@ ALIGN 16
 
 WELS_EXTERN WelsIChromaPredH_mmx
 WelsIChromaPredH_mmx:
-	;mov			edx,	[esp+4]			;pred
-	;mov         eax,	[esp+8]			;pRef
-	;mov			ecx,	[esp+12]		;stride
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	movq		mm0,	[r1-8]
 	psrlq		mm0,	38h
 
@@ -677,9 +642,7 @@ WELS_EXTERN WelsI4x4LumaPredV_sse2
 WelsI4x4LumaPredV_sse2:
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub			r1,	r2
 	movd		xmm0,	[r1]
 	pshufd		xmm0,	xmm0,	0
@@ -695,9 +658,7 @@ WELS_EXTERN WelsIChromaPredV_sse2
 WelsIChromaPredV_sse2:
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub		r1,		r2
 	movq		xmm0,		[r1]
 	movdqa		xmm1,		xmm0
@@ -742,9 +703,7 @@ WELS_EXTERN WelsI4x4LumaPredHD_mmx
 WelsI4x4LumaPredHD_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub         r1, r2
 	movd        mm0, [r1-1]            ; mm0 = [xx xx xx xx t2 t1 t0 lt]
 	psllq       mm0, 20h                ; mm0 = [t2 t1 t0 lt xx xx xx xx]
@@ -823,9 +782,7 @@ WELS_EXTERN WelsI4x4LumaPredHU_mmx
 WelsI4x4LumaPredHU_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	movd        mm0, [r1-4]            ; mm0[3] = l0
 	punpcklbw   mm0, [r1+r2-4]        ; mm0[7] = l1, mm0[6] = l0
 	lea         r1, [r1+2*r2]
@@ -908,9 +865,7 @@ WELS_EXTERN WelsI4x4LumaPredVR_mmx
 WelsI4x4LumaPredVR_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub         r1, r2
 	movq        mm0, [r1-1]            ; mm0 = [xx xx xx t3 t2 t1 t0 lt]
 	psllq       mm0, 18h                ; mm0 = [t3 t2 t1 t0 lt xx xx xx]
@@ -996,9 +951,7 @@ WELS_EXTERN WelsI4x4LumaPredDDL_mmx
 WelsI4x4LumaPredDDL_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub         r1, r2
 	movq        mm0, [r1]              ; mm0 = [t7 t6 t5 t4 t3 t2 t1 t0]
 	movq        mm1, mm0
@@ -1066,9 +1019,7 @@ WELS_EXTERN WelsI4x4LumaPredVL_mmx
 WelsI4x4LumaPredVL_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub         r1, r2
 	movq        mm0, [r1]              ; mm0 = [t7 t6 t5 t4 t3 t2 t1 t0]
 	movq        mm1, mm0
@@ -1109,9 +1060,7 @@ WelsIChromaPredDc_sse2:
 	push r4
 	%assign push_num 2
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub         r1, r2
 	movq        mm0, [r1]
 
@@ -1203,9 +1152,7 @@ WelsI16x16LumaPredDc_sse2:
 	push r4
 	%assign push_num 2
 	LOAD_3_PARA
-	%ifndef X86_32
-	movsx r2, r2d
-	%endif
+	SIGN_EXTENSION r2, r2d
 	sub         r1, r2
 	movdqa      xmm0, [r1]             ; read one row
 	pxor		xmm1, xmm1
