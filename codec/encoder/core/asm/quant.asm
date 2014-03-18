@@ -83,8 +83,6 @@ SECTION .text
 ;	void WelsQuant4x4_sse2(int16_t *pDct, int16_t* ff,  int16_t *mf);
 ;***********************************************************************
 WELS_EXTERN WelsQuant4x4_sse2
-align 16
-WelsQuant4x4_sse2:
 		%assign push_num 0
                 LOAD_3_PARA
 		movdqa	xmm2, [r1]
@@ -99,12 +97,10 @@ WelsQuant4x4_sse2:
 ;void WelsQuant4x4Dc_sse2(int16_t *pDct, const int16_t ff, int16_t mf);
 ;***********************************************************************
 WELS_EXTERN WelsQuant4x4Dc_sse2
-align 16
-WelsQuant4x4Dc_sse2:
  		%assign push_num 0
 		LOAD_3_PARA
-		SIGN_EXTENSION r1, r1w
-		SIGN_EXTENSION r2, r2w
+		SIGN_EXTENSIONW r1, r1w
+		SIGN_EXTENSIONW r2, r2w
 		SSE2_Copy8Times xmm3, r2d
 
 		SSE2_Copy8Times xmm2, r1d
@@ -118,8 +114,6 @@ WelsQuant4x4Dc_sse2:
 ;	void WelsQuantFour4x4_sse2(int16_t *pDct, int16_t* ff,  int16_t *mf);
 ;***********************************************************************
 WELS_EXTERN WelsQuantFour4x4_sse2
-align 16
-WelsQuantFour4x4_sse2:
 		%assign push_num 0
 		LOAD_3_PARA
 		MOVDQ	xmm2, [r1]
@@ -140,8 +134,6 @@ WelsQuantFour4x4_sse2:
 ;	void WelsQuantFour4x4Max_sse2(int16_t *pDct, int32_t* f,  int16_t *mf, int16_t *max);
 ;***********************************************************************
 WELS_EXTERN WelsQuantFour4x4Max_sse2
-align 16
-WelsQuantFour4x4Max_sse2:
 		%assign push_num 0
 		LOAD_4_PARA
 		MOVDQ	xmm2, [r1]
@@ -195,12 +187,10 @@ SECTION .text
 ;int32_t WelsHadamardQuant2x2_mmx(int16_t *rs, const int16_t ff, int16_t mf, int16_t * pDct, int16_t * block);
 ;***********************************************************************
 WELS_EXTERN WelsHadamardQuant2x2_mmx
-align 16
-WelsHadamardQuant2x2_mmx:
 		%assign push_num 0
 		LOAD_5_PARA
-		SIGN_EXTENSION r1, r1w
-		SIGN_EXTENSION r2, r2w
+		SIGN_EXTENSIONW r1, r1w
+		SIGN_EXTENSIONW r2, r2w
 		movd		mm0,			[r0]
 		movd		mm1,			[r0 + 0x20]
 		punpcklwd	mm0,			mm1
@@ -253,12 +243,10 @@ WelsHadamardQuant2x2_mmx:
 ;int32_t WelsHadamardQuant2x2Skip_mmx(int16_t *pDct, int16_t ff,  int16_t mf);
 ;***********************************************************************
 WELS_EXTERN WelsHadamardQuant2x2Skip_mmx
-align 16
-WelsHadamardQuant2x2Skip_mmx:
 		%assign push_num 0
 		LOAD_3_PARA
-		SIGN_EXTENSION r1, r1w
-		SIGN_EXTENSION r2, r2w
+		SIGN_EXTENSIONW r1, r1w
+		SIGN_EXTENSIONW r2, r2w
 		movd		mm0,			[r0]
 		movd		mm1,			[r0 + 0x20]
 		punpcklwd	mm0,			mm1
@@ -303,13 +291,10 @@ WelsHadamardQuant2x2Skip_mmx:
 %endmacro
 
 
-ALIGN  16
 ;***********************************************************************
 ; void WelsDequant4x4_sse2(int16_t *pDct, const uint16_t* mf);
 ;***********************************************************************
-align 16
 WELS_EXTERN WelsDequant4x4_sse2
-WelsDequant4x4_sse2:
 	%assign push_num 0
 	LOAD_2_PARA
 
@@ -323,10 +308,7 @@ WelsDequant4x4_sse2:
 ;void WelsDequantFour4x4_sse2(int16_t *pDct, const uint16_t* mf);
 ;***********************************************************************====
 
-align 16
-
 WELS_EXTERN WelsDequantFour4x4_sse2
-WelsDequantFour4x4_sse2:
 	%assign push_num 0
 	LOAD_2_PARA
 
@@ -346,8 +328,6 @@ WelsDequantFour4x4_sse2:
 ;void WelsDequantIHadamard4x4_sse2(int16_t *rs, const uint16_t mf);
 ;***********************************************************************
 WELS_EXTERN WelsDequantIHadamard4x4_sse2
-align 16
-WelsDequantIHadamard4x4_sse2:
 		%assign push_num 0
 		LOAD_2_PARA
 		%ifndef X86_32
