@@ -130,12 +130,10 @@ SSE2_DeQuant8 dw  10, 13, 10, 13, 13, 16, 13, 16,
     movd       %5, %1
 %endmacro
 SECTION .text
-ALIGN 16
 ;***********************************************************************
 ;   void WelsDctT4_mmx( int16_t *pDct[4], uint8_t *pix1, int32_t i_pix1, uint8_t *pix2, int32_t i_pix2 )
 ;***********************************************************************
 WELS_EXTERN WelsDctT4_mmx
-WelsDctT4_mmx:
     %assign push_num 0
     LOAD_5_PARA
     SIGN_EXTENSION r2, r2d
@@ -163,7 +161,6 @@ WelsDctT4_mmx:
 ;   void WelsIDctT4Rec_mmx(uint8_t *rec, int32_t stride, uint8_t *pred, int32_t pred_stride, int16_t *rs)
 ;***********************************************************************
 WELS_EXTERN WelsIDctT4Rec_mmx
-WelsIDctT4Rec_mmx:
     %assign push_num 0
     LOAD_5_PARA
     SIGN_EXTENSION r1, r1d
@@ -291,10 +288,9 @@ WelsIDctT4Rec_mmx:
 ; void WelsDctFourT4_sse2(int16_t *pDct, uint8_t *pix1, int32_t i_pix1, uint8_t *pix2, int32_t i_pix2 )
 ;***********************************************************************
 WELS_EXTERN WelsDctFourT4_sse2
-ALIGN 16
-WelsDctFourT4_sse2:
     %assign push_num 0
     LOAD_5_PARA
+    PUSH_XMM 8
     SIGN_EXTENSION r2, r2d
     SIGN_EXTENSION r4, r4d
     pxor    xmm7, xmm7
@@ -332,6 +328,7 @@ WelsDctFourT4_sse2:
 	lea		r0, [r0+64]
 	SSE2_Store4x8p r0, xmm4, xmm2, xmm3, xmm0, xmm5
 
+	POP_XMM
 	LOAD_5_PARA_POP
     ret
 
@@ -340,10 +337,9 @@ WelsDctFourT4_sse2:
 ; void WelsIDctFourT4Rec_sse2(uint8_t *rec, int32_t stride, uint8_t *pred, int32_t pred_stride, int16_t *rs);
 ;***********************************************************************
 WELS_EXTERN WelsIDctFourT4Rec_sse2
-ALIGN 16
-WelsIDctFourT4Rec_sse2:
 	%assign push_num 0
 	LOAD_5_PARA
+	PUSH_XMM 8
 	SIGN_EXTENSION r1, r1d
 	SIGN_EXTENSION r3, r3d
 	;Load 4x8
@@ -383,6 +379,7 @@ WelsIDctFourT4Rec_sse2:
 	lea		r2, [r2 + 2 * r3]
 	SSE2_StoreDiff8p   xmm1, xmm5, xmm6, xmm7, [r0],			[r2]
 	SSE2_StoreDiff8p   xmm2, xmm5, xmm6, xmm7, [r0 + r1],	[r2 + r3]
+	POP_XMM
 	LOAD_5_PARA_POP
    ; pop		esi
    ; pop		ebx
@@ -399,10 +396,9 @@ WelsIDctFourT4Rec_sse2:
 ; void WelsIDctRecI16x16Dc_sse2(uint8_t *rec, int32_t stride, uint8_t *pred, int32_t pred_stride, int16_t *dct_dc)
 ;***********************************************************************
 WELS_EXTERN WelsIDctRecI16x16Dc_sse2
-ALIGN 16
-WelsIDctRecI16x16Dc_sse2:
 	%assign push_num 0
 	LOAD_5_PARA
+	PUSH_XMM 8
 	SIGN_EXTENSION r1, r1d
 	SIGN_EXTENSION r3, r3d
 	pxor		xmm7,		xmm7
@@ -439,6 +435,7 @@ WelsIDctRecI16x16Dc_sse2:
 	lea			r0,		[r0 + 2 * r1]
 	lea			r2,		[r2 + 2 * r3]
 	SSE2_StoreDiff4x8p		xmm2, xmm3, xmm5, xmm7, r0, r2, r1, r3
+	POP_XMM
 	LOAD_5_PARA_POP
     ret
 
@@ -475,9 +472,9 @@ WelsIDctRecI16x16Dc_sse2:
 ;void WelsHadamardT4Dc_sse2( int16_t *luma_dc, int16_t *pDct)
 ;***********************************************************************
 WELS_EXTERN WelsHadamardT4Dc_sse2
-WelsHadamardT4Dc_sse2:
 		%assign push_num 0
 		LOAD_2_PARA
+		PUSH_XMM 8
 		SSE2_Load4Col	    xmm1, xmm5, xmm6, xmm0, r1
 		SSE2_Load4Col	    xmm2, xmm5, xmm6, xmm0, r1 + 0x40
 		SSE2_Load4Col	    xmm3, xmm5, xmm6, xmm0, r1 + 0x100
@@ -503,4 +500,5 @@ WelsHadamardT4Dc_sse2:
 		movdqa	[r0+ 0],   xmm3
 		movdqa	[r0+16],   xmm2
 
+		POP_XMM
 		ret

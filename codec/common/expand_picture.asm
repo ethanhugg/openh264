@@ -56,9 +56,6 @@
 
 SECTION .text
 
-WELS_EXTERN ExpandPictureLuma_sse2
-WELS_EXTERN ExpandPictureChromaAlign_sse2	; for chroma alignment
-WELS_EXTERN ExpandPictureChromaUnalign_sse2	; for chroma unalignment
 
 ;;;;;;;expanding result;;;;;;;
 
@@ -349,14 +346,13 @@ WELS_EXTERN ExpandPictureChromaUnalign_sse2	; for chroma unalignment
 %endif
 %endmacro
 
-ALIGN 16
 ;***********************************************************************----------------
 ; void ExpandPictureLuma_sse2(	uint8_t *pDst,
 ;									const int32_t iStride,
 ;									const int32_t iWidth,
 ;									const int32_t iHeight	);
 ;***********************************************************************----------------
-ExpandPictureLuma_sse2:
+WELS_EXTERN ExpandPictureLuma_sse2
 
     push r4
     push r5
@@ -364,6 +360,7 @@ ExpandPictureLuma_sse2:
 
     %assign push_num 3
     LOAD_4_PARA
+    PUSH_XMM 7
 
     SIGN_EXTENSION r1, r1d
     SIGN_EXTENSION r2, r2d
@@ -465,6 +462,7 @@ ExpandPictureLuma_sse2:
     ; for left & right border expanding
     exp_cross_sse2 32,a
 
+    POP_XMM
     LOAD_4_PARA_POP
 
     pop r6
@@ -476,14 +474,13 @@ ExpandPictureLuma_sse2:
 
 	ret
 
-ALIGN 16
 ;***********************************************************************----------------
 ; void ExpandPictureChromaAlign_sse2(	uint8_t *pDst,
 ;										const int32_t iStride,
 ;										const int32_t iWidth,
 ;										const int32_t iHeight	);
 ;***********************************************************************----------------
-ExpandPictureChromaAlign_sse2:
+WELS_EXTERN ExpandPictureChromaAlign_sse2
 
     push r4
     push r5
@@ -491,6 +488,7 @@ ExpandPictureChromaAlign_sse2:
 
     %assign push_num 3
     LOAD_4_PARA
+    PUSH_XMM 7
 
     SIGN_EXTENSION r1,r1d
     SIGN_EXTENSION r2,r2d
@@ -591,6 +589,7 @@ ExpandPictureChromaAlign_sse2:
     ; for left & right border expanding
     exp_cross_sse2 16,a
 
+    POP_XMM
     LOAD_4_PARA_POP
 
     pop r6
@@ -602,20 +601,20 @@ ExpandPictureChromaAlign_sse2:
 
 	ret
 
-ALIGN 16
 ;***********************************************************************----------------
 ; void ExpandPictureChromaUnalign_sse2(	uint8_t *pDst,
 ;										const int32_t iStride,
 ;										const int32_t iWidth,
 ;										const int32_t iHeight	);
 ;***********************************************************************----------------
-ExpandPictureChromaUnalign_sse2:
+WELS_EXTERN ExpandPictureChromaUnalign_sse2
 	push r4
     push r5
     push r6
 
     %assign push_num 3
     LOAD_4_PARA
+    PUSH_XMM 7
 
     SIGN_EXTENSION r1,r1d
     SIGN_EXTENSION r2,r2d
@@ -716,6 +715,7 @@ ExpandPictureChromaUnalign_sse2:
     ; for left & right border expanding
     exp_cross_sse2 16,u
 
+    POP_XMM
     LOAD_4_PARA_POP
 
     pop r6

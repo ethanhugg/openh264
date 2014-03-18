@@ -49,15 +49,13 @@
 SECTION .text
 
 
-WELS_EXTERN   WelsResBlockZero16x16_sse2
-
-ALIGN    16
 ;*******************************************************************************
 ;  void WelsResBlockZero16x16_sse2(int16_t* pBlock,int32_t iStride)
 ;*******************************************************************************
-WelsResBlockZero16x16_sse2:
+WELS_EXTERN   WelsResBlockZero16x16_sse2
         %assign push_num 0
         LOAD_2_PARA
+        PUSH_XMM 8
 	SIGN_EXTENSION r1, r1d
         lea 	r1, 	[r1*2]
         lea 	r2,	[r1*3]
@@ -119,18 +117,17 @@ WelsResBlockZero16x16_sse2:
 	movdqa   [r0+r2],     xmm7
 	movdqa   [r0+r2+10h],     xmm7
 
+	POP_XMM
 	ret
 
 
-WELS_EXTERN   WelsResBlockZero8x8_sse2
-
-ALIGN    16
 ;*******************************************************************************
 ;  void WelsResBlockZero8x8_sse2(int16_t * pBlock, int32_t iStride)
 ;*******************************************************************************
-WelsResBlockZero8x8_sse2:
+WELS_EXTERN   WelsResBlockZero8x8_sse2
 	  %assign push_num 0
           LOAD_2_PARA
+          PUSH_XMM 8
 	  SIGN_EXTENSION r1, r1d
 	  lea       r1,     [r1*2]
 	  lea       r2,     [r1*3]
@@ -149,5 +146,6 @@ WelsResBlockZero8x8_sse2:
 	  movdqa    [r0+r2],     xmm7
 
 
+	  POP_XMM
 	  ret
 

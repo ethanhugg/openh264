@@ -45,11 +45,7 @@
 ; Macros and other preprocessor constants
 ;*******************************************************************************
 
-%ifdef FORMAT_COFF
-SECTION .rodata pData
-%else
 SECTION .rodata align=16
-%endif
 
 ALIGN   16
 FOUR_16B_SSE2:   dw   4, 4, 4, 4, 4, 4, 4, 4
@@ -61,10 +57,9 @@ SECTION .text
 
 
 WELS_EXTERN   DeblockLumaLt4V_ssse3
-
-DeblockLumaLt4V_ssse3:
   push        rbp
   mov         r11,[rsp + 16 + 20h]  ; pTC
+  PUSH_XMM 16
   sub         rsp,1B0h
   lea         rbp,[rsp+20h]
   movd        xmm4,r8d
@@ -313,14 +308,12 @@ DeblockLumaLt4V_ssse3:
   movdqa      [r12+rcx],xmm0
   mov         r12,qword [rbp+180h]
   lea         rsp,[rbp+190h]
+  POP_XMM
   pop         rbp
   ret
 
 
 WELS_EXTERN   DeblockLumaEq4V_ssse3
-
-ALIGN  16
-DeblockLumaEq4V_ssse3:
   mov         rax,rsp
   push        rbx
   push        rbp
@@ -781,12 +774,10 @@ DeblockLumaEq4V_ssse3:
 
 
 WELS_EXTERN  DeblockChromaLt4V_ssse3
-
-ALIGN  16
-DeblockChromaLt4V_ssse3:
   mov         rax,rsp
   push        rbx
   push        rdi
+  PUSH_XMM 16
   sub         rsp,0C8h
   mov         r10,qword [rax + 30h]  ; pTC
   pxor        xmm1,xmm1
@@ -841,7 +832,7 @@ DeblockChromaLt4V_ssse3:
   punpckhbw   xmm2,xmm1
   punpcklbw   xmm14,xmm1
   movd        xmm0,eax
-  movsx       eax,word [rsp + 0C8h + 38h] ; iBeta
+  movsx       eax,word [rsp + 0C8h + 38h + 160] ; iBeta
   punpckhbw   xmm13,xmm1
   punpckhbw   xmm15,xmm1
   movdqa      xmm3,xmm9
@@ -937,16 +928,16 @@ DeblockChromaLt4V_ssse3:
   movq        [rdi],xmm14
   movaps      xmm14,[rsp+30h]
   mov         rsp,r11
+  POP_XMM
   pop         rdi
   pop         rbx
   ret
 
 
 WELS_EXTERN   DeblockChromaEq4V_ssse3
-ALIGN 16
-DeblockChromaEq4V_ssse3:
   mov         rax,rsp
   push        rbx
+  PUSH_XMM 15
   sub         rsp,90h
   pxor        xmm1,xmm1
   mov         r11,rcx
@@ -983,7 +974,7 @@ DeblockChromaEq4V_ssse3:
   punpcklbw   xmm9,xmm1
   punpckhbw   xmm10,xmm1
   movd        xmm0,eax
-  movsx       eax,word [rsp + 90h + 8h + 28h]   ; iBeta
+  movsx       eax,word [rsp + 90h + 8h + 28h + 144]   ; iBeta
   punpckhbw   xmm13,xmm1
   movdqa      xmm7,xmm12
   punpcklwd   xmm0,xmm0
@@ -1089,6 +1080,7 @@ DeblockChromaEq4V_ssse3:
   movaps      xmm12,[r11-70h]
   movaps      xmm13,[r11-80h]
   mov         rsp,r11
+  POP_XMM
   pop         rbx
   ret
 
@@ -1097,11 +1089,10 @@ DeblockChromaEq4V_ssse3:
 
 
 WELS_EXTERN   DeblockChromaEq4H_ssse3
-ALIGN  16
-DeblockChromaEq4H_ssse3:
   mov         rax,rsp
   mov         [rax+20h],rbx
   push        rdi
+  PUSH_XMM 16
   sub         rsp,140h
   mov         rdi,rdx
   lea         eax,[r8*4]
@@ -1194,7 +1185,7 @@ DeblockChromaEq4H_ssse3:
   movd        xmm0,eax
   movdqa      xmm4,xmm12
   movdqa      xmm8,xmm11
-  movsx       eax,word [rsp+170h] ; iBeta
+  movsx       eax,word [rsp+170h + 160] ; iBeta
   punpcklwd   xmm0,xmm0
   punpcklbw   xmm4,xmm1
   punpckhbw   xmm12,xmm1
@@ -1352,23 +1343,22 @@ DeblockChromaEq4H_ssse3:
   mov         [rbx+r10*2],eax
   mov         eax,[rsp+7Ch]
   mov         [rdx+rbx],eax
-  lea         r11,[rsp+140h]
-  mov         rbx, [r11+28h]
-  mov         rsp,r11
+  lea         rsp,[rsp+140h]
+  POP_XMM
+  mov         rbx, [rsp+28h]
   pop         rdi
   ret
 
 
 
 WELS_EXTERN DeblockChromaLt4H_ssse3
-ALIGN  16
-DeblockChromaLt4H_ssse3:
   mov         rax,rsp
   push        rbx
   push        rbp
   push        rsi
   push        rdi
   push        r12
+  PUSH_XMM 16
   sub         rsp,170h
 
   movsxd      rsi,r8d
@@ -1452,7 +1442,7 @@ DeblockChromaLt4H_ssse3:
   punpckhdq   xmm7,xmm0
   movdqa      xmm0,xmm1
   punpckldq   xmm0,xmm5
-  mov         rax, [rsp+1C8h]    ; pTC
+  mov         rax, [rsp+1C8h+160]    ; pTC
   punpckhdq   xmm1,xmm5
   movdqa      xmm9,xmm6
   punpckhqdq  xmm6,xmm0
@@ -1490,7 +1480,7 @@ DeblockChromaLt4H_ssse3:
   punpckhbw   xmm9,xmm1
   punpckhbw   xmm8,xmm1
   punpcklwd   xmm0,xmm0
-  movsx       eax,word [rsp+1C0h]   ; iBeta
+  movsx       eax,word [rsp+1C0h+160]   ; iBeta
   mov         word [rsp+4],r8w
   mov         word [rsp+2],r9w
   pshufd      xmm12,xmm0,0
@@ -1634,6 +1624,7 @@ DeblockChromaLt4H_ssse3:
   mov         [r10+rbp],eax
   lea         r11,[rsp+170h]
   mov         rsp,r11
+  POP_XMM
   pop         r12
   pop         rdi
   pop         rsi
@@ -1647,8 +1638,6 @@ DeblockChromaLt4H_ssse3:
 
 
 WELS_EXTERN   DeblockLumaLt4V_ssse3
-
-DeblockLumaLt4V_ssse3:
   push        rbp
   mov         r11,r8  ; pTC
   sub         rsp,1B0h
@@ -1904,9 +1893,6 @@ DeblockLumaLt4V_ssse3:
 
 
 WELS_EXTERN DeblockLumaEq4V_ssse3
-
-ALIGN  16
-DeblockLumaEq4V_ssse3:
   mov         rax,rsp
   push        rbx
   push        rbp
@@ -2366,8 +2352,6 @@ DeblockLumaEq4V_ssse3:
   ret
 
 WELS_EXTERN  DeblockChromaLt4V_ssse3
-ALIGN  16
-DeblockChromaLt4V_ssse3:
   mov         rax,rsp
   push        rbx
   push        rbp
@@ -2534,8 +2518,6 @@ DeblockChromaLt4V_ssse3:
   ret
 
 WELS_EXTERN DeblockChromaEq4V_ssse3
-
-DeblockChromaEq4V_ssse3:
   mov         rax,rsp
   push        rbx
   push        rbp
@@ -2685,9 +2667,6 @@ DeblockChromaEq4V_ssse3:
   ret
 
 WELS_EXTERN DeblockChromaEq4H_ssse3
-
-ALIGN  16
-DeblockChromaEq4H_ssse3:
   mov         rax,rsp
   push        rbx
   push        rbp
@@ -2960,8 +2939,6 @@ DeblockChromaEq4H_ssse3:
 
 
 WELS_EXTERN DeblockChromaLt4H_ssse3
-ALIGN  16
-DeblockChromaLt4H_ssse3:
   mov         rax,rsp
   push        rbx
   push        rbp
@@ -3256,9 +3233,6 @@ DeblockChromaLt4H_ssse3:
 ;                             int32_t iAlpha, int32_t iBeta)
 ;********************************************************************************
 WELS_EXTERN   DeblockChromaEq4V_ssse3
-
-ALIGN  16
-DeblockChromaEq4V_ssse3:
   push        ebp
   mov         ebp,esp
   and         esp,0FFFFFFF0h
@@ -3426,8 +3400,6 @@ DeblockChromaEq4V_ssse3:
 ;*******************************************************************************
 
 WELS_EXTERN  DeblockChromaLt4V_ssse3
-
-DeblockChromaLt4V_ssse3:
   push        ebp
   mov         ebp,esp
   and         esp,0FFFFFFF0h
@@ -3629,10 +3601,6 @@ DeblockChromaLt4V_ssse3:
 ;***************************************************************************
 
 WELS_EXTERN     DeblockChromaEq4H_ssse3
-
-ALIGN  16
-
-DeblockChromaEq4H_ssse3:
   push        ebp
   mov         ebp,esp
   and         esp,0FFFFFFF0h
@@ -3914,10 +3882,6 @@ DeblockChromaEq4H_ssse3:
 ;*******************************************************************************
 
 WELS_EXTERN  DeblockChromaLt4H_ssse3
-
-ALIGN  16
-
-DeblockChromaLt4H_ssse3:
   push        ebp
   mov         ebp,esp
   and         esp,0FFFFFFF0h
@@ -4230,10 +4194,6 @@ DeblockChromaLt4H_ssse3:
 
 
 WELS_EXTERN  DeblockLumaLt4V_ssse3
-
-ALIGN  16
-
-DeblockLumaLt4V_ssse3:
     push	ebp
 	mov	ebp, esp
 	and	esp, -16				; fffffff0H
@@ -4620,11 +4580,8 @@ DeblockLumaLt4V_ssse3:
 ;                                 int32_t iBeta)
 ;*******************************************************************************
 
+
 WELS_EXTERN  DeblockLumaEq4V_ssse3
-
-ALIGN  16
-
-DeblockLumaEq4V_ssse3:
 
 	push	ebp
 	mov	ebp, esp
@@ -5174,16 +5131,13 @@ DeblockLumaEq4V_ssse3:
 ;********************************************************************************
 
 WELS_EXTERN  DeblockLumaTransposeH2V_sse2
-
-ALIGN  16
-
-DeblockLumaTransposeH2V_sse2:
     push     r3
     push     r4
     push     r5
 
 %assign   push_num   3
     LOAD_3_PARA
+    PUSH_XMM 8
 
     SIGN_EXTENSION   r1, r1d
 
@@ -5240,6 +5194,7 @@ DeblockLumaTransposeH2V_sse2:
     movdqa  [r2 + 70h],  xmm0
 
     mov     r7,   r5
+    POP_XMM
     pop     r5
     pop     r4
     pop     r3
@@ -5253,15 +5208,12 @@ DeblockLumaTransposeH2V_sse2:
 ;*******************************************************************************************
 
 WELS_EXTERN   DeblockLumaTransposeV2H_sse2
-
-ALIGN  16
-
-DeblockLumaTransposeV2H_sse2:
     push     r3
     push     r4
 
 %assign  push_num 2
     LOAD_3_PARA
+    PUSH_XMM 8
 
     SIGN_EXTENSION   r1, r1d
 
@@ -5319,6 +5271,7 @@ DeblockLumaTransposeV2H_sse2:
 
 
     mov      r7,   r4
+    POP_XMM
     pop      r4
     pop      r3
     ret

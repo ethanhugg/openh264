@@ -45,11 +45,7 @@
 ; Local Data (Read Only)
 ;***********************************************************************
 
-%ifdef FORMAT_COFF
-SECTION .rodata pData
-%else
 SECTION .rodata align=16
-%endif
 
 align 16
 sse2_plane_inc_minus dw -7, -6, -5, -4, -3, -2, -1, 0
@@ -184,18 +180,13 @@ mmx_0x02: dw 0x02, 0x00, 0x00, 0x00
 ;***********************************************************************
 
 SECTION .text
-WELS_EXTERN WelsI4x4LumaPredH_sse2
-WELS_EXTERN WelsI4x4LumaPredDDR_mmx
-WELS_EXTERN WelsI4x4LumaPredDc_sse2
-WELS_EXTERN WelsI16x16LumaPredPlane_sse2
 
-ALIGN 16
 ;***********************************************************************
 ;   void WelsI4x4LumaPredH_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride)
 ;
 ;	pred must align to 16
 ;***********************************************************************
-WelsI4x4LumaPredH_sse2:
+WELS_EXTERN WelsI4x4LumaPredH_sse2
 	push r3
 	%assign push_num 1
 	LOAD_3_PARA
@@ -229,11 +220,12 @@ WelsI4x4LumaPredH_sse2:
 ;***********************************************************************
 ; void WelsI16x16LumaPredPlane_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride);
 ;***********************************************************************
-WelsI16x16LumaPredPlane_sse2:
+WELS_EXTERN WelsI16x16LumaPredPlane_sse2
 		push r3
 		push r4
 		%assign push_num 2
 		LOAD_3_PARA
+		PUSH_XMM 8
 		SIGN_EXTENSION r2, r2d
 		sub		r1,	1
 		sub		r1,	r2
@@ -309,6 +301,7 @@ get_i16x16_luma_pred_plane_sse2_1:
 		inc		r3
 		cmp		r3,	16
 		jnz get_i16x16_luma_pred_plane_sse2_1
+		POP_XMM
 		pop r4
 		pop r3
 		ret
@@ -326,7 +319,6 @@ get_i16x16_luma_pred_plane_sse2_1:
 %endmacro
 
 WELS_EXTERN WelsI16x16LumaPredH_sse2
-WelsI16x16LumaPredH_sse2:
 	push r3
 	%assign push_num 1
 	LOAD_3_PARA
@@ -357,7 +349,6 @@ WelsI16x16LumaPredH_sse2:
 ; void WelsI16x16LumaPredV_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride);
 ;***********************************************************************
 WELS_EXTERN WelsI16x16LumaPredV_sse2
-WelsI16x16LumaPredV_sse2:
     %assign push_num 0
     LOAD_3_PARA
     SIGN_EXTENSION r2, r2d
@@ -387,11 +378,11 @@ WelsI16x16LumaPredV_sse2:
 ; void WelsIChromaPredPlane_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride);
 ;***********************************************************************
 WELS_EXTERN WelsIChromaPredPlane_sse2
-WelsIChromaPredPlane_sse2:
 		push r3
 		push r4
 		%assign push_num 2
 		LOAD_3_PARA
+		PUSH_XMM 8
 		SIGN_EXTENSION r2, r2d
 		sub		r1,	1
 		sub		r1,	r2
@@ -466,12 +457,12 @@ get_i_chroma_pred_plane_sse2_1:
 		inc		r3
 		cmp		r3,	8
 		jnz get_i_chroma_pred_plane_sse2_1
+		POP_XMM
 		pop r4
 		pop r3
 		WELSEMMS
 		ret
 
-ALIGN 16
 ;***********************************************************************
 ;	0 |1 |2 |3 |4 |
 ;	6 |7 |8 |9 |10|
@@ -484,7 +475,7 @@ ALIGN 16
 ;   void WelsI4x4LumaPredDDR_mmx(uint8_t *pred,uint8_t *pRef,int32_t stride)
 ;
 ;***********************************************************************
-WelsI4x4LumaPredDDR_mmx:
+WELS_EXTERN WelsI4x4LumaPredDDR_mmx
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -525,7 +516,6 @@ WelsI4x4LumaPredDDR_mmx:
 	WELSEMMS
 	ret
 
-ALIGN 16
 ;***********************************************************************
 ;	0 |1 |2 |3 |4 |
 ;	5 |6 |7 |8 |9 |
@@ -538,7 +528,7 @@ ALIGN 16
 ;   void WelsI4x4LumaPredDc_sse2(uint8_t *pred,uint8_t *pRef,int32_t stride)
 ;
 ;***********************************************************************
-WelsI4x4LumaPredDc_sse2:
+WELS_EXTERN WelsI4x4LumaPredDc_sse2
 	push r3
 	push r4
 	%assign push_num 2
@@ -572,7 +562,6 @@ WelsI4x4LumaPredDc_sse2:
 	pop r3
 	ret
 
-ALIGN 16
 ;***********************************************************************
 ;	void WelsIChromaPredH_mmx(uint8_t *pred, uint8_t *pRef, int32_t stride)
 ;   copy 8 pixel of 8 line from left
@@ -598,7 +587,6 @@ ALIGN 16
 %endmacro
 
 WELS_EXTERN WelsIChromaPredH_mmx
-WelsIChromaPredH_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -629,13 +617,11 @@ WelsIChromaPredH_mmx:
 	WELSEMMS
 	ret
 
-ALIGN 16
 ;***********************************************************************
 ;	void WelsI4x4LumaPredV_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride)
 ;   copy pixels from top 4 pixels
 ;***********************************************************************
 WELS_EXTERN WelsI4x4LumaPredV_sse2
-WelsI4x4LumaPredV_sse2:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -645,13 +631,11 @@ WelsI4x4LumaPredV_sse2:
 	movdqa		[r0],	xmm0
 	ret
 
-ALIGN 16
 ;***********************************************************************
 ;	void WelsIChromaPredV_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride)
 ;   copy 8 pixels from top 8 pixels
 ;***********************************************************************
 WELS_EXTERN WelsIChromaPredV_sse2
-WelsIChromaPredV_sse2:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -665,7 +649,6 @@ WelsIChromaPredV_sse2:
 	movdqa		[r0+48],	xmm0
 	ret
 
-	ALIGN 16
 ;***********************************************************************
 ;	lt|t0|t1|t2|t3|
 ;	l0|
@@ -696,7 +679,6 @@ WelsIChromaPredV_sse2:
 ;   void WelsI4x4LumaPredHD_mmx(uint8_t *pred,uint8_t *pRef,int32_t stride)
 ;***********************************************************************
 WELS_EXTERN WelsI4x4LumaPredHD_mmx
-WelsI4x4LumaPredHD_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -747,7 +729,6 @@ WelsI4x4LumaPredHD_mmx:
 	WELSEMMS
 	ret
 
-ALIGN 16
 ;***********************************************************************
 ;	lt|t0|t1|t2|t3|
 ;	l0|
@@ -775,7 +756,6 @@ ALIGN 16
 ;   void WelsI4x4LumaPredHU_mmx(uint8_t *pred,uint8_t *pRef,int32_t stride)
 ;***********************************************************************
 WELS_EXTERN WelsI4x4LumaPredHU_mmx
-WelsI4x4LumaPredHU_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -828,7 +808,6 @@ WelsI4x4LumaPredHU_mmx:
 
 
 
-ALIGN 16
 ;***********************************************************************
 ;	lt|t0|t1|t2|t3|
 ;	l0|
@@ -858,7 +837,6 @@ ALIGN 16
 ;   void WelsI4x4LumaPredVR_mmx(uint8_t *pred,uint8_t *pRef,int32_t stride)
 ;***********************************************************************
 WELS_EXTERN WelsI4x4LumaPredVR_mmx
-WelsI4x4LumaPredVR_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -916,7 +894,6 @@ WelsI4x4LumaPredVR_mmx:
 	WELSEMMS
 	ret
 
-ALIGN 16
 ;***********************************************************************
 ;	lt|t0|t1|t2|t3|t4|t5|t6|t7
 ;	l0|
@@ -944,7 +921,6 @@ ALIGN 16
 ;   void WelsI4x4LumaPredDDL_mmx(uint8_t *pred,uint8_t *pRef,int32_t stride)
 ;***********************************************************************
 WELS_EXTERN WelsI4x4LumaPredDDL_mmx
-WelsI4x4LumaPredDDL_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -981,7 +957,6 @@ WelsI4x4LumaPredDDL_mmx:
 	ret
 
 
-ALIGN 16
 ;***********************************************************************
 ;	lt|t0|t1|t2|t3|t4|t5|t6|t7
 ;	l0|
@@ -1012,7 +987,6 @@ ALIGN 16
 ;   void WelsI4x4LumaPredVL_mmx(uint8_t *pred,uint8_t *pRef,int32_t stride)
 ;***********************************************************************
 WELS_EXTERN WelsI4x4LumaPredVL_mmx
-WelsI4x4LumaPredVL_mmx:
 	%assign push_num 0
 	LOAD_3_PARA
 	SIGN_EXTENSION r2, r2d
@@ -1045,13 +1019,11 @@ WelsI4x4LumaPredVL_mmx:
 	WELSEMMS
 	ret
 
-ALIGN 16
 ;***********************************************************************
 ;
 ;   void WelsIChromaPredDc_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride)
 ;***********************************************************************
 WELS_EXTERN WelsIChromaPredDc_sse2
-WelsIChromaPredDc_sse2:
 	push r3
 	push r4
 	%assign push_num 2
@@ -1137,13 +1109,11 @@ WelsIChromaPredDc_sse2:
 
 
 
-ALIGN 16
 ;***********************************************************************
 ;
 ;   void WelsI16x16LumaPredDc_sse2(uint8_t *pred, uint8_t *pRef, int32_t stride)
 ;***********************************************************************
 WELS_EXTERN WelsI16x16LumaPredDc_sse2
-WelsI16x16LumaPredDc_sse2:
 	push r3
 	push r4
 	%assign push_num 2
@@ -1206,8 +1176,6 @@ WelsI16x16LumaPredDc_sse2:
 ;***********************************************************************
 %ifdef X86_32
 WELS_EXTERN WelsSampleSatdThree4x4_sse2
-align 16
-WelsSampleSatdThree4x4_sse2:
 	push      ebx
 	push      esi
 	push      edi
