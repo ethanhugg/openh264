@@ -45,11 +45,7 @@
 ; Local Data (Read Only)
 ;***********************************************************************
 
-%ifdef FORMAT_COFF
-SECTION .rodata pData
-%else
 SECTION .rodata align=16
-%endif
 
 align 16
 sse2_plane_inc_minus dw -7, -6, -5, -4, -3, -2, -1, 0
@@ -229,6 +225,7 @@ WELS_EXTERN WelsI16x16LumaPredPlane_sse2
 		push r4
 		%assign push_num 2
 		LOAD_3_PARA
+		PUSH_XMM 8
 		SIGN_EXTENSION r2, r2d
 		sub		r1,	1
 		sub		r1,	r2
@@ -304,6 +301,7 @@ get_i16x16_luma_pred_plane_sse2_1:
 		inc		r3
 		cmp		r3,	16
 		jnz get_i16x16_luma_pred_plane_sse2_1
+		POP_XMM
 		pop r4
 		pop r3
 		ret
@@ -384,6 +382,7 @@ WELS_EXTERN WelsIChromaPredPlane_sse2
 		push r4
 		%assign push_num 2
 		LOAD_3_PARA
+		PUSH_XMM 8
 		SIGN_EXTENSION r2, r2d
 		sub		r1,	1
 		sub		r1,	r2
@@ -458,6 +457,7 @@ get_i_chroma_pred_plane_sse2_1:
 		inc		r3
 		cmp		r3,	8
 		jnz get_i_chroma_pred_plane_sse2_1
+		POP_XMM
 		pop r4
 		pop r3
 		WELSEMMS

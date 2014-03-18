@@ -49,11 +49,7 @@
 ; Local Data (Read Only)
 ;*******************************************************************************
 
-%ifdef FORMAT_COFF
-SECTION .rodata data
-%else
 SECTION .rodata align=16
-%endif
 %if 1
 	%define WELSEMMS	emms
 %else
@@ -223,6 +219,7 @@ WELS_EXTERN WelsDecoderI16x16LumaPredPlane_sse2
 		push r4
 		%assign push_num 2
 		LOAD_2_PARA
+		PUSH_XMM 8
 		SIGN_EXTENSION r1, r1d
 		mov r4, r0 ; save r0 in r4
 		sub		r0,	1
@@ -302,6 +299,7 @@ get_i16x16_luma_pred_plane_sse2_1:
 		cmp		r2,	16
 		jnz get_i16x16_luma_pred_plane_sse2_1
 
+		POP_XMM
 		pop r4
 		pop r3
 		ret
@@ -387,6 +385,7 @@ WELS_EXTERN WelsDecoderIChromaPredPlane_sse2
 		push r4
 		%assign push_num 2
 		LOAD_2_PARA
+		PUSH_XMM 8
 		SIGN_EXTENSION r1, r1d
 		mov r4, r0
 		sub		r0,	1
@@ -465,6 +464,7 @@ get_i_chroma_pred_plane_sse2_1:
 		cmp		r2,	8
 		jnz get_i_chroma_pred_plane_sse2_1
 
+		POP_XMM
 		pop r4
 		pop r3
 		WELSEMMS
@@ -1181,6 +1181,7 @@ WELS_EXTERN WelsDecoderI16x16LumaPredDc_sse2
 WELS_EXTERN WelsDecoderI16x16LumaPredDcTop_sse2
 	%assign push_num 0
 	LOAD_2_PARA
+	PUSH_XMM 8
 	SIGN_EXTENSION r1, r1d
 	mov r2, r0
 	sub r2, r1
@@ -1243,6 +1244,7 @@ WELS_EXTERN WelsDecoderI16x16LumaPredDcTop_sse2
 	movdqa [r0+2*r1], xmm0
 	movdqa [r0+r2], xmm1
 
+	POP_XMM
 	ret
 
 ;*******************************************************************************
@@ -1355,6 +1357,7 @@ WELS_EXTERN WelsDecoderIChromaPredDcLeft_mmx
 WELS_EXTERN WelsDecoderIChromaPredDcTop_sse2
 	%assign push_num 0
 	LOAD_2_PARA
+	PUSH_XMM 8
 	SIGN_EXTENSION r1, r1d
 	mov r2, r0
 	sub r2, r1
@@ -1384,6 +1387,7 @@ WELS_EXTERN WelsDecoderIChromaPredDcTop_sse2
 	movq [r0+r1], xmm0
 	movq [r0+2*r1], xmm0
 	movq [r0+r2], xmm0
+	POP_XMM
 	ret
 
 ;*******************************************************************************
