@@ -45,6 +45,7 @@
 #include "memory.h"
 #include "WelsFrameWork.h"
 #include "IWelsVP.h"
+#include "sad_common.h"
 
 WELSVP_NAMESPACE_BEGIN
 
@@ -52,19 +53,16 @@ typedef  int32_t (SadFunc) (uint8_t* pSrcY, int32_t iSrcStrideY, uint8_t* pRefY,
 
 typedef SadFunc*   SadFuncPtr;
 
-SadFunc      WelsSampleSad8x8_c;
+typedef int32_t (Sad16x16Func) ( uint8_t * pSrcY, int32_t iSrcStrideY, uint8_t *pRefY, int32_t iRefStrideY );
+typedef Sad16x16Func      *PSad16x16Func;
 
-#ifdef X86_ASM
-WELSVP_EXTERN_C_BEGIN
-SadFunc      WelsSampleSad8x8_sse21;
-WELSVP_EXTERN_C_END
-#endif
+typedef void (GetIntraPred)(uint8_t *pPred, uint8_t *pRef, const int32_t kiStride);
 
-#ifdef HAVE_NEON
-WELSVP_EXTERN_C_BEGIN
-SadFunc      WelsProcessingSampleSad8x8_neon;
-WELSVP_EXTERN_C_END
-#endif
+typedef GetIntraPred  *GetIntraPredPtr;
+
+GetIntraPred     WelsI16x16LumaPredV_c;
+GetIntraPred     WelsI16x16LumaPredH_c;
+
 
 WELSVP_NAMESPACE_END
 
