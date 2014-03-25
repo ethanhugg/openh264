@@ -30,30 +30,44 @@
  *
  */
 
-#include "SceneChangeDetectionCommon.h"
+#include "common.h"
+#include "ls_defines.h"
 
 WELSVP_NAMESPACE_BEGIN
 
+void WelsI16x16LumaPredV_c (uint8_t* pPred, uint8_t* pRef, const int32_t kiStride) {
+  uint8_t i = 15;
+  const int8_t* kpSrc = (int8_t*)&pRef[-kiStride];
+  const uint64_t kuiT1 = LD64 (kpSrc);
+  const uint64_t kuiT2 = LD64 (kpSrc + 8);
+  uint8_t* pDst = pPred;
 
-int32_t WelsSampleSad8x8_c (uint8_t* pSrcY, int32_t iSrcStrideY, uint8_t* pRefY, int32_t iRefStrideY) {
-  int32_t iSadSum = 0;
-  uint8_t* pSrcA = pSrcY;
-  uint8_t* pSrcB = pRefY;
-  for (int32_t i = 0; i < 8; i++) {
-    iSadSum += WELS_ABS ((pSrcA[0] - pSrcB[0]));
-    iSadSum += WELS_ABS ((pSrcA[1] - pSrcB[1]));
-    iSadSum += WELS_ABS ((pSrcA[2] - pSrcB[2]));
-    iSadSum += WELS_ABS ((pSrcA[3] - pSrcB[3]));
-    iSadSum += WELS_ABS ((pSrcA[4] - pSrcB[4]));
-    iSadSum += WELS_ABS ((pSrcA[5] - pSrcB[5]));
-    iSadSum += WELS_ABS ((pSrcA[6] - pSrcB[6]));
-    iSadSum += WELS_ABS ((pSrcA[7] - pSrcB[7]));
+  do {
+    ST64 (pDst  , kuiT1);
+	ST64 (pDst + 8, kuiT2);
+	pDst += 16;
+  } while (i-- > 0);
+}
 
-    pSrcA += iSrcStrideY;
-    pSrcB += iRefStrideY;
-  }
+void WelsI16x16LumaPredH_c (uint8_t* pPred, uint8_t* pRef, const int32_t kiStride) {
+  int32_t iStridex15 = (kiStride << 4) - kiStride;
+  int32_t iPredStride = 16;
+  int32_t iPredStridex15 = 240;	//(iPredStride<<4)-iPredStride;
+  uint8_t i = 15;
 
-  return iSadSum;
+  do {
+    const uint8_t kuiSrc8	= pRef[iStridex15 - 1];
+#ifdef _MSC_VER
+	const uint64_t kuiV64	= (uint64_t) (0x0101010101010101U * kuiSrc8);
+#else
+	const uint64_t kuiV64	= (uint64_t) (0x0101010101010101LL * kuiSrc8);
+#endif
+	ST64 (&pPred[iPredStridex15], kuiV64);
+	ST64 (&pPred[iPredStridex15 + 8], kuiV64);
+
+	iStridex15 -= kiStride;
+	iPredStridex15 -= iPredStride;
+  } while (i-- > 0);
 }
 
 WELSVP_NAMESPACE_END
