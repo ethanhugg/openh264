@@ -39,7 +39,6 @@
  */
 
 #include "cpu_core.h"
-#include "sample.h"
 #include "svc_motion_estimate.h"
 
 namespace WelsSVCEnc {
@@ -183,7 +182,7 @@ void NotCalculateSatdCost( PSampleSadSatdCostFunc pSatd, void * vpMe,
 
 
 /////////////////////////
-// Diamond Search Related
+// Diamond Search Basics
 /////////////////////////
 bool WelsMeSadCostSelect (int32_t* iSadCost, const uint16_t* kpMvdCost, int32_t* pBestCost, const int32_t kiDx,
                             const int32_t kiDy, int32_t* pIx, int32_t* pIy) {
@@ -260,7 +259,7 @@ void WelsMotionEstimateIterativeSearch (SWelsFuncPtrList* pFuncList, SWelsME* pM
 }
 
 /////////////////////////
-// DirectionalMv Related
+// DirectionalMv Basics
 /////////////////////////
 bool CheckDirectionalMv(PSampleSadSatdCostFunc pSad, void * vpMe,
                       const SMVUnitXY ksMinMv, const SMVUnitXY ksMaxMv, const int32_t kiEncStride, const int32_t kiRefStride,
@@ -291,7 +290,7 @@ bool CheckDirectionalMvFalse(PSampleSadSatdCostFunc pSad, void * vpMe,
 }
 
 /////////////////////////
-// Cross Search Related
+// Cross Search Basics
 /////////////////////////
 void VerticalFullSearchUsingSSE41( void *pFunc, void *vpMe,
 														uint16_t* pMvdTable, const int32_t kiFixedMvd,
@@ -368,8 +367,80 @@ void WelsMotionCrossSearch(SWelsFuncPtrList *pFuncList,  SDqLayer* pCurLayer, SW
 }
 
 /////////////////////////
-// Feature Search Related
+// Feature Search Basics
 /////////////////////////
+//memory related
+int32_t RequestFeatureSearchPreparation( CMemoryAlign *pMa, const int32_t kiFeatureStrategyIndex,
+                                         const int32_t kiFrameWidth,  const int32_t kiFrameHeight, const bool bFme8x8,
+                                         uint16_t*& pFeatureOfBlock) {
+  const int32_t kiMarginSize = bFme8x8?8:16;
+  const int32_t kiFrameSize = (kiFrameWidth-kiMarginSize) * (kiFrameHeight-kiMarginSize);
+  int32_t iListOfFeatureOfBlock;
+
+  if (0==kiFeatureStrategyIndex) {
+    iListOfFeatureOfBlock =sizeof(uint16_t) * kiFrameSize;
+  } else {
+    iListOfFeatureOfBlock = sizeof(uint16_t) * kiFrameSize +
+      (kiFrameWidth-kiMarginSize) * sizeof(uint32_t) + kiFrameWidth * 8 * sizeof(uint8_t);
+  }
+  pFeatureOfBlock =
+    (uint16_t *)pMa->WelsMalloc(iListOfFeatureOfBlock, "pFeatureOfBlock");
+  WELS_VERIFY_RETURN_IF(ENC_RETURN_MEMALLOCERR, NULL == pFeatureOfBlock)
+
+  return ENC_RETURN_SUCCESS;
+}
+int32_t ReleaseFeatureSearchPreparation( CMemoryAlign *pMa, uint16_t*& pFeatureOfBlock) {
+  if ( pMa && pFeatureOfBlock ) {
+    pMa->WelsFree( pFeatureOfBlock, "pFeatureOfBlock");
+    pFeatureOfBlock=NULL;
+    return ENC_RETURN_SUCCESS;
+  }
+  return ENC_RETURN_UNEXPECTED;
+}
+int32_t RequestScreenBlockFeatureStorage( CMemoryAlign *pMa, const int32_t kiFeatureStrategyIndex,
+                                         const int32_t kiFrameWidth,  const int32_t kiFrameHeight, const int32_t kiMe16x16,  const int32_t kiMe8x8,
+                                         SScreenBlockFeatureStorage* pScreenBlockFeatureStorage) {
+#define LIST_SIZE_SUM_16x16	0x0FF01		//(256*255+1)
+#define LIST_SIZE_SUM_8x8	    0x03FC1		//(64*255+1)
+
+  if (((kiMe8x8&ME_FME)==ME_FME) && ((kiMe16x16&ME_FME)==ME_FME)) {
+    return ENC_RETURN_UNSUPPORTED_PARA;
+    //the following memory allocation cannot support when FME at both size
+  }
+
+  const bool bIsBlock8x8 = ((kiMe8x8 & ME_FME)==ME_FME);
+  const int32_t kiMarginSize = bIsBlock8x8?8:16;
+  const int32_t kiFrameSize = (kiFrameWidth-kiMarginSize) * (kiFrameHeight-kiMarginSize);
+  const int32_t kiListSize	= (0==kiFeatureStrategyIndex)?(bIsBlock8x8 ? LIST_SIZE_SUM_8x8 : LIST_SIZE_SUM_16x16):256;
+
+  pScreenBlockFeatureStorage->pTimesOfFeatureValue = (uint32_t*)pMa->WelsMalloc(kiListSize*sizeof(uint32_t),"pScreenBlockFeatureStorage->pTimesOfFeatureValue");
+  WELS_VERIFY_RETURN_IF(ENC_RETURN_MEMALLOCERR, NULL == pScreenBlockFeatureStorage->pTimesOfFeatureValue)
+
+  pScreenBlockFeatureStorage->pLocationOfFeature = (uint16_t**)pMa->WelsMalloc(kiListSize*sizeof(uint16_t*),"pScreenBlockFeatureStorage->pLocationOfFeature");
+  WELS_VERIFY_RETURN_IF(ENC_RETURN_MEMALLOCERR, NULL == pScreenBlockFeatureStorage->pLocationOfFeature)
+
+  pScreenBlockFeatureStorage->pLocationPointer = (uint16_t*)pMa->WelsMalloc(2*kiFrameSize*sizeof(uint16_t), "pScreenBlockFeatureStorage->pLocationPointer");
+  WELS_VERIFY_RETURN_IF(ENC_RETURN_MEMALLOCERR, NULL == pScreenBlockFeatureStorage->pLocationPointer)
+
+  pScreenBlockFeatureStorage->iActualListSize	= kiListSize;
+  return ENC_RETURN_SUCCESS;
+}
+int32_t ReleaseScreenBlockFeatureStorage( CMemoryAlign *pMa, SScreenBlockFeatureStorage* pScreenBlockFeatureStorage ) {
+  if ( pMa && pScreenBlockFeatureStorage ) {
+    pMa->WelsFree( pScreenBlockFeatureStorage->pTimesOfFeatureValue, "pScreenBlockFeatureStorage->pTimesOfFeatureValue");
+    pScreenBlockFeatureStorage->pTimesOfFeatureValue=NULL;
+
+    pMa->WelsFree( pScreenBlockFeatureStorage->pLocationOfFeature, "pScreenBlockFeatureStorage->pLocationOfFeature");
+    pScreenBlockFeatureStorage->pLocationOfFeature=NULL;
+
+    pMa->WelsFree( pScreenBlockFeatureStorage->pLocationPointer, "pScreenBlockFeatureStorage->pLocationPointer");
+    pScreenBlockFeatureStorage->pLocationPointer=NULL;
+
+    return ENC_RETURN_SUCCESS;
+  }
+  return ENC_RETURN_UNEXPECTED;
+}
+//search related
 void SetFeatureSearchIn( SWelsFuncPtrList *pFunc,  const SWelsME& sMe,
                         const SSlice *pSlice, SScreenBlockFeatureStorage* pRefFeatureStorage,
                         const int32_t kiEncStride, const int32_t kiRefStride,
@@ -473,23 +544,63 @@ bool FeatureSearchOne( SFeatureSearchIn &sFeatureSearchIn, const int32_t iFeatur
   return (i < iSearchTimesx2);
 }
 
-
-void MotionEstimateFeatureFullSearchScc( SFeatureSearchIn &sFeatureSearchIn,
-                                        const uint32_t kiMaxSearchPoint,
+void MotionEstimateFeatureFullSearch( SFeatureSearchIn &sFeatureSearchIn,
+                                        const uint32_t kuiMaxSearchPoint,
                                         SWelsME* pMe) {
-  SFeatureSearchOut sFeatureSearchOut = {0};
+  SFeatureSearchOut sFeatureSearchOut = {0};//TODO: this can be refactored and removed
   sFeatureSearchOut.uiBestSadCost = pMe->uiSadCost;
   sFeatureSearchOut.sBestMv = pMe->sMv;
   sFeatureSearchOut.pBestRef = pMe->pRefMb;
 
-  FeatureSearchOne( sFeatureSearchIn, 0, kiMaxSearchPoint, &sFeatureSearchOut );
-  if ( sFeatureSearchOut.uiBestSadCost < pMe->uiSadCost ) {
+  int32_t iFeatureDifference = 0;//TODO: change it according to computational-complexity setting when needed
+  FeatureSearchOne( sFeatureSearchIn, iFeatureDifference, kuiMaxSearchPoint, &sFeatureSearchOut );
+  if ( sFeatureSearchOut.uiBestSadCost < pMe->uiSadCost ) {//TODO: this may be refactored and removed
     UpdateMeResults(sFeatureSearchOut.sBestMv,
       sFeatureSearchOut.uiBestSadCost, sFeatureSearchOut.pBestRef,
       pMe);
   }
 }
 
+/////////////////////////
+// Search function options
+/////////////////////////
+void WelsDiamondCrossSearch(SWelsFuncPtrList *pFunc, void* vpLayer, void* vpMe, void* vpSlice) {
+    SDqLayer* pCurLayer = static_cast<SDqLayer *>(vpLayer);
+    SWelsME* pMe			 = static_cast<SWelsME *>(vpMe);
+    SSlice* pSlice				 = static_cast<SSlice *>(vpSlice);
 
+    //  Step 1: diamond search
+    WelsMotionEstimateIterativeSearch(pFunc, pMe, pCurLayer->iEncStride[0], pCurLayer->pRefPic->iLineSize[0], pMe->pRefMb);
+
+    //  Step 2: CROSS search
+    SScreenBlockFeatureStorage pRefBlockFeature; //TODO: use this structure from Ref
+    pMe->uiSadCostThreshold = pRefBlockFeature.uiSadCostThreshold[pMe->uiBlockSize];
+    if (pMe->uiSadCost >= pMe->uiSadCostThreshold) {
+      WelsMotionCrossSearch(pFunc, pCurLayer, pMe, pSlice);
+    }
+}
+void WelsDiamondCrossFeatureSearch(SWelsFuncPtrList *pFunc, void* vpLayer, void* vpMe, void* vpSlice) {
+    SDqLayer* pCurLayer = static_cast<SDqLayer *>(vpLayer);
+    SWelsME* pMe			 = static_cast<SWelsME *>(vpMe);
+    SSlice* pSlice				 = static_cast<SSlice *>(vpSlice);
+
+    //  Step 1: diamond search + cross
+    WelsDiamondCrossSearch(pFunc, pCurLayer, pMe, pSlice);
+
+    // Step 2: FeatureSearch
+    if (pMe->uiSadCost >= pMe->uiSadCostThreshold) {
+        pSlice->uiSliceFMECostDown += pMe->uiSadCost;
+
+        SScreenBlockFeatureStorage tmpScreenBlockFeatureStorage; //TODO: use this structure from Ref
+        uint32_t uiMaxSearchPoint = INT_MAX;//TODO: change it according to computational-complexity setting
+        SFeatureSearchIn sFeatureSearchIn = {0};
+        SetFeatureSearchIn(pFunc, *pMe, pSlice, &tmpScreenBlockFeatureStorage,
+          pCurLayer->iEncStride[0], pCurLayer->pRefPic->iLineSize[0],
+          &sFeatureSearchIn);
+        MotionEstimateFeatureFullSearch( sFeatureSearchIn, uiMaxSearchPoint, pMe);
+
+        pSlice->uiSliceFMECostDown -= pMe->uiSadCost;
+    }
+}
 } // namespace WelsSVCEnc
 
