@@ -1013,15 +1013,15 @@ ESceneChangeIdc CWelsPreProcess::DetectSceneChangeScreen (sWelsEncCtx* pCtx, SPi
     return LARGE_CHANGED_SCENE;
   }
 
-  SRefInfoParam sAvailableRefList[MAX_REF_PIC_COUNT] = {0};
+  SRefInfoParam sAvailableRefList[MAX_REF_PIC_COUNT] = { { 0 } };
   int32_t iAvailableRefNum = 0;
   int32_t iAvailableSceneRefNum = 0;
 
   int32_t iSceneChangeMethodIdx = METHOD_SCENE_CHANGE_DETECTION_SCREEN;
   SSceneChangeResult sSceneChangeResult = {SIMILAR_SCENE, 0, 0, NULL};
 
-  SPixMap sSrcMap = {0};
-  SPixMap sRefMap = {0};
+  SPixMap sSrcMap = { { 0 } };
+  SPixMap sRefMap = { { 0 } };
   SRefJudgement sLtrJudgement;
   SRefJudgement sSceneLtrJudgement;
   SRefInfoParam sLtrSaved = {0};
@@ -1030,7 +1030,7 @@ ESceneChangeIdc CWelsPreProcess::DetectSceneChangeScreen (sWelsEncCtx* pCtx, SPi
   int32_t iNumOfLargeChange = 0, iNumOfMediumChangeToLtr = 0;
 
   bool bBestRefIsLtr = false, bIsClosestLtrFrame = false;
-  int32_t ret = 1, iScdIdx = 0, i = 0;
+  int32_t ret = 1, iScdIdx = 0;
 
   SPicture* pRefPic = NULL;
   SRefInfoParam* pRefPicInfo = NULL;
@@ -1122,6 +1122,15 @@ ESceneChangeIdc CWelsPreProcess::DetectSceneChangeScreen (sWelsEncCtx* pCtx, SPi
 
   pVaaExt->iNumOfAvailableRef = 1;
   return static_cast<ESceneChangeIdc> (iVaaFrameSceneChangeIdc);
+}
+
+int32_t CWelsPreProcess::GetRefCandidateLtrIndex(int32_t iRefIdx)
+{
+  const int32_t iTargetDid = m_pEncCtx->pSvcParam->iSpatialLayerNum - 1;
+  SVAAFrameInfoExt* pVaaExt			= static_cast<SVAAFrameInfoExt*> (m_pEncCtx->pVaa);
+  SRefInfoParam* BestRefCandidateParam =&(pVaaExt->sVaaStrBestRefCandidate[iRefIdx]);
+	int32_t iLtrRefIdx = m_pSpatialPic[iTargetDid][BestRefCandidateParam->iSrcListIdx]->iLongTermPicNum;
+  return iLtrRefIdx;
 }
 void  CWelsPreProcess::Padding (uint8_t* pSrcY, uint8_t* pSrcU, uint8_t* pSrcV, int32_t iStrideY, int32_t iStrideUV,
                                 int32_t iActualWidth, int32_t iPaddingWidth, int32_t iActualHeight, int32_t iPaddingHeight) {
