@@ -196,7 +196,7 @@ void CWelsH264SVCEncoder::InitEncoder (void) {
 /* Interfaces override from ISVCEncoder */
 
 int CWelsH264SVCEncoder::GetDefaultParams (SEncParamExt* argv) {
-  SWelsSvcCodingParam::FillDefault(*argv, true);
+  SWelsSvcCodingParam::FillDefault(*argv);
   return cmResultSuccess;
 }
 
@@ -211,15 +211,15 @@ int CWelsH264SVCEncoder::Initialize (const SEncParamBase* argv) {
     return cmInitParaError;
   }
 
-  SWelsSvcCodingParam	sConfig (true);
+  SWelsSvcCodingParam	sConfig;
   // Convert SEncParamBase into WelsSVCParamConfig here..
-  if (sConfig.ParamBaseTranscode (*argv, true)) {
+  if (sConfig.ParamBaseTranscode (*argv)) {
     WelsLog (m_pEncContext, WELS_LOG_ERROR, "CWelsH264SVCEncoder::Initialize(), parameter_translation failed.\n");
     Uninitialize();
     return cmInitParaError;
   }
 
-  return Initialize2 (&sConfig);
+  return InitializeInternal(&sConfig);
 }
 
 int CWelsH264SVCEncoder::InitializeExt (const SEncParamExt* argv) {
@@ -230,7 +230,7 @@ int CWelsH264SVCEncoder::InitializeExt (const SEncParamExt* argv) {
     return cmInitParaError;
   }
 
-  SWelsSvcCodingParam	sConfig (true);
+  SWelsSvcCodingParam	sConfig;
   // Convert SEncParamExt into WelsSVCParamConfig here..
   if (sConfig.ParamTranscode (*argv)) {
     WelsLog (m_pEncContext, WELS_LOG_ERROR, "CWelsH264SVCEncoder::InitializeExt(), parameter_translation failed.\n");
@@ -238,10 +238,10 @@ int CWelsH264SVCEncoder::InitializeExt (const SEncParamExt* argv) {
     return cmInitParaError;
   }
 
-  return Initialize2 (&sConfig);
+  return InitializeInternal(&sConfig);
 }
 
-int CWelsH264SVCEncoder::Initialize2 (SWelsSvcCodingParam* pCfg) {
+int CWelsH264SVCEncoder::InitializeInternal(SWelsSvcCodingParam* pCfg) {
   if (NULL == pCfg) {
     WelsLog (m_pEncContext, WELS_LOG_ERROR, "CWelsH264SVCEncoder::Initialize(), invalid argv= 0x%p.\n",
              pCfg);
@@ -470,37 +470,6 @@ int32_t CWelsH264SVCEncoder::Uninitialize() {
 }
 
 
-int32_t CWelsH264SVCEncoder::RawData2SrcPic (const uint8_t* pSrc) {
-  assert (m_iSrcListSize > 0);
-
-  int32_t y_length = m_iMaxPicWidth * m_iMaxPicHeight;
-  m_pSrcPicList[0]->pData[0] = const_cast<uint8_t*> (pSrc);
-
-  switch (m_iCspInternal & (~videoFormatVFlip)) {
-  case videoFormatYVYU:
-  case videoFormatUYVY:
-  case videoFormatYUY2:
-  case videoFormatRGB:
-  case videoFormatBGR:
-  case videoFormatBGRA:
-  case videoFormatRGBA:
-  case videoFormatARGB:
-  case videoFormatABGR:
-    m_pSrcPicList[0]->pData[1] = m_pSrcPicList[0]->pData[2] = NULL;
-    break;
-  case videoFormatI420:
-  case videoFormatYV12:
-    m_pSrcPicList[0]->pData[1] = m_pSrcPicList[0]->pData[0] + y_length;
-    m_pSrcPicList[0]->pData[2] = m_pSrcPicList[0]->pData[1] + (y_length >> 2);
-    break;
-  default:
-    return 1;
-  }
-
-  return 0;
-}
-
-
 /*
  *	SVC core encoding
  */
@@ -717,7 +686,7 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
   break;
   case ENCODER_OPTION_SVC_ENCODE_PARAM_EXT: {	// SVC Encoding Parameter
     SEncParamExt		sEncodingParam;
-    SWelsSvcCodingParam	sConfig (true);
+    SWelsSvcCodingParam	sConfig;
     int32_t iInputColorspace = 0;
     int32_t iTargetWidth = 0;
     int32_t iTargetHeight = 0;
