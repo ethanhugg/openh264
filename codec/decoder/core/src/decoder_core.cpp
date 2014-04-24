@@ -134,11 +134,13 @@ inline void    HandleReferenceLostL0 (PWelsDecoderContext pCtx, PNalUnit pCurNal
   if (0 == pCurNal->sNalHeaderExt.uiTemporalId) {
     pCtx->bReferenceLostAtT0Flag = true;
   }
+  if (pCtx->iErrorConMethod == ERROR_CON_DISABLE) {
 #ifndef LONG_TERM_REF
-  if (pCtx->bReferenceLostAtT0Flag) {
-    ResetParameterSetsState (pCtx);
-  }
+    if (pCtx->bReferenceLostAtT0Flag) {
+      ResetParameterSetsState (pCtx);
+    }
 #endif
+  }
   pCtx->iErrorCode |= dsBitstreamError;
 }
 
@@ -146,11 +148,13 @@ inline void    HandleReferenceLost (PWelsDecoderContext pCtx, PNalUnit pCurNal) 
   if ((0 == pCurNal->sNalHeaderExt.uiTemporalId) || (1 == pCurNal->sNalHeaderExt.uiTemporalId)) {
     pCtx->bReferenceLostAtT0Flag = true;
   }
+  if (pCtx->iErrorConMethod == ERROR_CON_DISABLE) {
 #ifndef LONG_TERM_REF
-  if (pCtx->bReferenceLostAtT0Flag) {
-    ResetParameterSetsState (pCtx);
-  }
+    if (pCtx->bReferenceLostAtT0Flag) {
+      ResetParameterSetsState (pCtx);
+    }
 #endif
+  }
   pCtx->iErrorCode |= dsRefLost;
 }
 
@@ -901,13 +905,15 @@ int32_t UpdateAccessUnit (PWelsDecoderContext pCtx) {
     if (uiActualIdx ==
         pCurAu->uiActualUnitsNum) {	// no found IDR nal within incoming AU, need exit to avoid mosaic issue, 11/19/2009
       WelsLog (pCtx, WELS_LOG_WARNING, "UpdateAccessUnit():::::Key frame lost.....CAN NOT find IDR from current AU.\n");
+      if (pCtx->iErrorConMethod == ERROR_CON_DISABLE) {
 #ifdef LONG_TERM_REF
-      pCtx->iErrorCode |= dsNoParamSets;
-      return dsNoParamSets;
+        pCtx->iErrorCode |= dsNoParamSets;
+        return dsNoParamSets;
 #else
-      pCtx->iErrorCode |= dsRefLost;
-      return ERR_INFO_REFERENCE_PIC_LOST;
+        pCtx->iErrorCode |= dsRefLost;
+        return ERR_INFO_REFERENCE_PIC_LOST;
 #endif
+      }
     }
   }
 
@@ -1534,7 +1540,6 @@ static bool CheckNewSeqBeginAndUpdateActiveLayerSps(PWelsDecoderContext pCtx) {
 static void WriteBackActiveParameters(PWelsDecoderContext pCtx) {
   if (pCtx->iOverwriteFlags & OVERWRITE_PPS) {
     memcpy(&pCtx->sPpsBuffer[pCtx->sPpsBuffer[MAX_PPS_COUNT].iPpsId], &pCtx->sPpsBuffer[MAX_PPS_COUNT], sizeof(SPps));
-    pCtx->bNewSeqBegin = true;
   }
   if (pCtx->iOverwriteFlags & OVERWRITE_SPS) {
     memcpy(&pCtx->sSpsBuffer[pCtx->sSpsBuffer[MAX_SPS_COUNT].iSpsId], &pCtx->sSpsBuffer[MAX_SPS_COUNT], sizeof(SSps));
@@ -1542,6 +1547,7 @@ static void WriteBackActiveParameters(PWelsDecoderContext pCtx) {
   }
   if (pCtx->iOverwriteFlags & OVERWRITE_SUBSETSPS) {
     memcpy(&pCtx->sSubsetSpsBuffer[pCtx->sSubsetSpsBuffer[MAX_SPS_COUNT].sSps.iSpsId], &pCtx->sSubsetSpsBuffer[MAX_SPS_COUNT], sizeof(SSubsetSps));
+    pCtx->bNewSeqBegin = true;
   }
   pCtx->iOverwriteFlags = OVERWRITE_NONE;
 }
@@ -1567,7 +1573,7 @@ int32_t ConstructAccessUnit (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferI
   pCtx->bAuReadyFlag = false;
   pCtx->bLastHasMmco5 = false;
   bool bTmpNewSeqBegin = CheckNewSeqBeginAndUpdateActiveLayerSps(pCtx);
-  pCtx->bNewSeqBegin = pCtx->bNewSeqBegin && bTmpNewSeqBegin;
+  pCtx->bNewSeqBegin = pCtx->bNewSeqBegin || bTmpNewSeqBegin;
   iErr = WelsDecodeAccessUnitStart (pCtx);
   GetVclNalTemporalId (pCtx);
 
@@ -1580,9 +1586,8 @@ int32_t ConstructAccessUnit (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferI
   pCtx->pSps = pCurAu->pNalUnitsList[pCurAu->uiStartPos]->sNalData.sVclNal.sSliceHeaderExt.sSliceHeader.pSps;
   pCtx->pPps = pCurAu->pNalUnitsList[pCurAu->uiStartPos]->sNalData.sVclNal.sSliceHeaderExt.sSliceHeader.pPps;
 
-  //try to allocate or relocate DPB memory only when IDR arrival.
-  if (NAL_UNIT_CODED_SLICE_IDR == pCurAu->pNalUnitsList[pCurAu->uiStartPos]->sNalHeaderExt.sNalUnitHeader.eNalUnitType ||
-      pCurAu->pNalUnitsList[pCurAu->uiStartPos]->sNalHeaderExt.bIdrFlag) {
+  //try to allocate or relocate DPB memory only when new sequence is coming.
+  if (pCtx->bNewSeqBegin) {
     WelsResetRefPic (pCtx); //clear ref pPic when IDR NAL
     iErr = SyncPictureResolutionExt (pCtx, pCtx->pSps->iMbWidth, pCtx->pSps->iMbHeight);
 
@@ -1599,6 +1604,10 @@ int32_t ConstructAccessUnit (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferI
   WelsDecodeAccessUnitEnd (pCtx);
   pCtx->bNewSeqBegin = false;
   WriteBackActiveParameters(pCtx);
+  pCtx->bNewSeqBegin = pCtx->bNewSeqBegin || pCtx->bNextNewSeqBegin;
+  pCtx->bNextNewSeqBegin = false; // reset it
+  if (pCtx->bNewSeqBegin)
+    ResetActiveSPSForEachLayer(pCtx);
   if (ERR_NONE != iErr) {
     WelsLog (pCtx, WELS_LOG_INFO, "returned error from decoding:[0x%x]\n", iErr);
     return iErr;
