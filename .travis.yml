@@ -6,6 +6,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq nasm g++-4.6-multilib gcc-multilib libc6-dev-i386 lib32z1-dev
 install:
+  - make gmp-bootstrap
   - wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20131030.zip
   - unzip -qq adt-bundle-linux-x86_64-20131030.zip 
   - export PATH=$PATH:`pwd`/adt-bundle-linux-x86_64-20131030/sdk/tools
@@ -13,5 +14,9 @@ install:
   - tar xjf android-ndk-r9c-linux-x86_64.tar.bz2
   - export NDKROOT=`pwd`/android-ndk-r9c
   - export TARGET=android-19
-script: make -B OS=android && make -B OS=android BUILDTYPE=Debug
+script:
+  - make -B OS=android
+  - make -B OS=android plugin
+  - make -B OS=android BUILDTYPE=Debug
+  - make -B OS=android BUILDTYPE=Debug plugin
 
