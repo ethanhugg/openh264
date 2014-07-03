@@ -15,8 +15,5 @@ install:
   - export NDKROOT=`pwd`/android-ndk-r9c
   - export TARGET=android-19
 script:
-  - make -B OS=android
-  - make -B OS=android plugin
-  - make -B OS=android BUILDTYPE=Debug
-  - make -B OS=android BUILDTYPE=Debug plugin
-
+  - make -B OS=android BUILDTYPE=Release all plugin
+  - make -B OS=android BUILDTYPE=Debug all plugin
