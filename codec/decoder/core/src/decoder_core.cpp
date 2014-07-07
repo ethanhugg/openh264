@@ -319,7 +319,7 @@ int32_t ExpandBsBuffer (PWelsDecoderContext pCtx, const int kiSrcLen) {
     return ERR_INFO_OUT_OF_MEMORY;
 
   //Calculate and set the bs start and end position
-  for (int32_t i = 0; i <= pCtx->pAccessUnitList->uiActualUnitsNum; i++) {
+  for (uint32_t i = 0; i <= pCtx->pAccessUnitList->uiActualUnitsNum; i++) {
     PBitStringAux pSliceBitsRead = &pCtx->pAccessUnitList->pNalUnitsList[i]->sNalData.sVclNal.sSliceBitsRead;
     pSliceBitsRead->pStartBuf = pSliceBitsRead->pStartBuf - pCtx->sRawData.pHead + pNewBsBuff;
     pSliceBitsRead->pEndBuf   = pSliceBitsRead->pEndBuf   - pCtx->sRawData.pHead + pNewBsBuff;
@@ -951,6 +951,7 @@ int32_t UpdateAccessUnit (PWelsDecoderContext pCtx) {
         pCurAu->uiActualUnitsNum) {	// no found IDR nal within incoming AU, need exit to avoid mosaic issue, 11/19/2009
       WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING,
                "UpdateAccessUnit():::::Key frame lost.....CAN NOT find IDR from current AU.\n");
+      pCtx->iErrorCode |= dsRefLost;
       if (pCtx->iErrorConMethod == ERROR_CON_DISABLE) {
 #ifdef LONG_TERM_REF
         pCtx->iErrorCode |= dsNoParamSets;
