@@ -43,11 +43,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="1"
-				TypeLibraryName=".\..\..\..\..\..\bin\win32\Release/WelsDecPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -58,7 +53,6 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\plus\Release/WelsDecPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\decoder\plus\Release/"
 				ObjectFile=".\..\..\..\obj\decoder\plus\Release/"
 				ProgramDataBaseFileName=".\..\..\..\obj\decoder\plus\Release/"
@@ -81,7 +75,6 @@
 				AdditionalDependencies=".\..\..\..\..\bin\win32\Release\welsdcore.lib"
 				OutputFile="$(OutDir)\welsdec.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories=".\..\..\..\libs\Release\"
 				ModuleDefinitionFile="..\..\..\decoder\plus\src\wels_dec_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsdec.pdb"
@@ -140,11 +133,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="3"
-				TypeLibraryName=".\..\..\..\..\..\bin\win32\Release/WelsDecPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -155,7 +143,6 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\plus\Release/WelsDecPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\decoder\plus\Release/"
 				ObjectFile=".\..\..\..\obj\decoder\plus\Release/"
 				ProgramDataBaseFileName=".\..\..\..\obj\decoder\plus\Release/"
@@ -178,7 +165,6 @@
 				AdditionalDependencies=".\..\..\..\..\bin\win64\Release\welsdcore.lib"
 				OutputFile="$(OutDir)\welsdec.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories=".\..\..\..\libs\Release\"
 				ModuleDefinitionFile="..\..\..\decoder\plus\src\wels_dec_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsdec.pdb"
@@ -236,11 +222,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="1"
-				TypeLibraryName=".\..\..\..\..\..\bin\win32\Debug/WelsDecPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -250,7 +231,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\plus\debug/WelsDecPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\decoder\plus\debug/"
 				ObjectFile=".\..\..\..\obj\decoder\plus\debug/"
 				ProgramDataBaseFileName=".\..\..\..\obj\decoder\plus\debug/"
@@ -273,7 +253,6 @@
 				AdditionalDependencies=".\..\..\..\..\bin\win32\Debug\welsdcore.lib"
 				OutputFile="$(OutDir)\welsdec.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\libs\debug"
 				ModuleDefinitionFile="..\..\..\decoder\plus\src\wels_dec_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsdec.pdb"
@@ -329,11 +308,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="3"
-				TypeLibraryName=".\..\..\..\..\..\bin\win32\Debug/WelsDecPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -343,7 +317,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\plus\debug/WelsDecPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\decoder\plus\debug/"
 				ObjectFile=".\..\..\..\obj\decoder\plus\debug/"
 				ProgramDataBaseFileName=".\..\..\..\obj\decoder\plus\debug/"
@@ -366,7 +339,6 @@
 				AdditionalDependencies=".\..\..\..\..\bin\win64\Debug\welsdcore.lib"
 				OutputFile="$(OutDir)\welsdec.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\libs\debug"
 				ModuleDefinitionFile="..\..\..\decoder\plus\src\wels_dec_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsdec.pdb"
