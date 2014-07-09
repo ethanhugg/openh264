@@ -42,11 +42,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="1"
-				TypeLibraryName=".\..\..\..\..\..\bin\Debug/WelsEncPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -56,7 +51,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\plus\Debug/WelsEncPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\encoder\plus\Debug/"
 				ObjectFile=".\..\..\..\obj\encoder\plus\Debug/"
 				ProgramDataBaseFileName=".\..\..\..\obj\encoder\plus\Debug/"
@@ -79,7 +73,6 @@
 				AdditionalDependencies="$(OutDir)\welsecore.lib $(OutDir)\welsvp.lib"
 				OutputFile="$(OutDir)\welsenc.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\libs"
 				ModuleDefinitionFile="..\..\..\encoder\plus\src\wels_enc_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsenc.pdb"
@@ -137,11 +130,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="3"
-				TypeLibraryName=".\..\..\..\..\..\bin\Debug/WelsEncPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -151,7 +139,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\plus\Debug/WelsEncPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\encoder\plus\Debug/"
 				ObjectFile=".\..\..\..\obj\encoder\plus\Debug/"
 				ProgramDataBaseFileName=".\..\..\..\obj\encoder\plus\Debug/"
@@ -174,7 +161,6 @@
 				AdditionalDependencies="$(OutDir)\welsecore.lib $(OutDir)\welsvp.lib"
 				OutputFile="$(OutDir)\welsenc.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\libs"
 				ModuleDefinitionFile="..\..\..\encoder\plus\src\wels_enc_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsenc.pdb"
@@ -233,11 +219,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="1"
-				TypeLibraryName=".\..\..\..\..\..\bin\Release/WelsEncPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -250,7 +231,6 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\plus\Release/WelsEncPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\encoder\plus\Release/"
 				ObjectFile=".\..\..\..\obj\encoder\plus\Release/"
 				ProgramDataBaseFileName=".\..\..\..\obj\encoder\plus\Release/"
@@ -273,7 +253,6 @@
 				AdditionalDependencies="$(OutDir)\welsecore.lib $(OutDir)\welsvp.lib"
 				OutputFile="$(OutDir)\welsenc.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\..\libs"
 				ModuleDefinitionFile="..\..\..\encoder\plus\src\wels_enc_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsenc.pdb"
@@ -333,11 +312,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="true"
-				TargetEnvironment="3"
-				TypeLibraryName=".\..\..\..\..\..\bin\Release/WelsEncPlus.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -350,7 +324,6 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\plus\Release/WelsEncPlus.pch"
 				AssemblerListingLocation=".\..\..\..\obj\encoder\plus\Release/"
 				ObjectFile=".\..\..\..\obj\encoder\plus\Release/"
 				ProgramDataBaseFileName=".\..\..\..\obj\encoder\plus\Release/"
@@ -373,7 +346,6 @@
 				AdditionalDependencies="$(OutDir)\welsecore.lib $(OutDir)\welsvp.lib"
 				OutputFile="$(OutDir)\welsenc.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\..\libs"
 				ModuleDefinitionFile="..\..\..\encoder\plus\src\wels_enc_export.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\welsenc.pdb"
