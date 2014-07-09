@@ -63,21 +63,26 @@ static inline int32_t DecodeFrameConstruction (PWelsDecoderContext pCtx, uint8_t
 #else
     pCtx->bReferenceLostAtT0Flag = false;	// need initialize it due new seq, 6/4/2010
 #endif //LONG_TERM_REF
-    WelsLog (& (pCtx->sLogCtx), WELS_LOG_INFO,
-             "DecodeFrameConstruction()::::output first frame of new sequence, %d x %d, crop_left:%d, crop_right:%d, crop_top:%d, crop_bottom:%d.\n",
-             kiWidth, kiHeight, pCtx->sFrameCrop.iLeftOffset, pCtx->sFrameCrop.iRightOffset, pCtx->sFrameCrop.iTopOffset,
-             pCtx->sFrameCrop.iBottomOffset);
+    if (pCtx->iTotalNumMbRec == kiTotalNumMbInCurLayer) {
+      pCtx->bPrintFrameErrorTraceFlag = true;
+      WelsLog (& (pCtx->sLogCtx), WELS_LOG_INFO,
+               "DecodeFrameConstruction()::::output first frame of new sequence, %d x %d, crop_left:%d, crop_right:%d, crop_top:%d, crop_bottom:%d, ignored error packet:%d.\n",
+               kiWidth, kiHeight, pCtx->sFrameCrop.iLeftOffset, pCtx->sFrameCrop.iRightOffset, pCtx->sFrameCrop.iTopOffset,
+               pCtx->sFrameCrop.iBottomOffset, pCtx->iIgnoredErrorInfoPacketCount);
+      pCtx->iIgnoredErrorInfoPacketCount = 0;
+    }
   }
 
   if (pCtx->iTotalNumMbRec != kiTotalNumMbInCurLayer) {
-    WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING,
+    WelsLog (& (pCtx->sLogCtx), WELS_LOG_DEBUG,
              "DecodeFrameConstruction():::iTotalNumMbRec:%d, total_num_mb_sps:%d, cur_layer_mb_width:%d, cur_layer_mb_height:%d \n",
              pCtx->iTotalNumMbRec, kiTotalNumMbInCurLayer, pCurDq->iMbWidth, pCurDq->iMbHeight);
     bFrameCompleteFlag = false; //return later after output buffer is done
     if (pCtx->bInstantDecFlag) //no-delay decoding, wait for new slice
       return -1;
-  } else if (pCurDq->sLayerInfo.sNalHeaderExt.bIdrFlag && (pCtx->iErrorCode == dsErrorFree)) { //complete non-ECed IDR frame done
-      pCtx->bDecErrorConedFlag = false;
+  } else if (pCurDq->sLayerInfo.sNalHeaderExt.bIdrFlag
+             && (pCtx->iErrorCode == dsErrorFree)) { //complete non-ECed IDR frame done
+    pCtx->bDecErrorConedFlag = false;
   }
 
   pCtx->iTotalNumMbRec = 0;
