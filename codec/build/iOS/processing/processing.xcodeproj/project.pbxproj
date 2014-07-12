@@ -447,7 +447,6 @@
 				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphonesimulator*]" = APPLE_IOS;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../processing/interface",
 					"$(SRCROOT)/../../../processing/src/common",
 					"$(SRCROOT)/../../../common/inc",
@@ -457,7 +456,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = "armv7 armv7s arm64";
 			};
@@ -483,7 +481,6 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../processing/interface",
 					"$(SRCROOT)/../../../processing/src/common",
 					"$(SRCROOT)/../../../common/inc",
@@ -493,7 +490,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = "armv7 armv7s arm64";
 			};
