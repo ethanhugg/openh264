@@ -89,6 +89,7 @@ ENCODER_INCLUDES += \
 PROCESSING_INCLUDES += \
     -I$(SRC_PATH)codec/processing/interface \
     -I$(SRC_PATH)codec/processing/src/common \
+    -I$(SRC_PATH)codec/processing/src/adaptivequantization \
     -I$(SRC_PATH)codec/processing/src/scrolldetection
 
 GTEST_INCLUDES += \
@@ -193,9 +194,6 @@ $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) 
 ifeq ($(HAVE_GMP_API),Yes)
 plugin: $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX)
 LIBRARIES += $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX)
-ifeq (linux,$(OS))
-LDFLAGS += -Wl,-z,noexecstack
-endif
 else
 plugin:
 	@echo "./gmp-api : No such file or directory."
