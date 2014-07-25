@@ -121,9 +121,13 @@ MODULE_INCLUDES += -I$(SRC_PATH)gmp-api
 
 .PHONY: test gtest-bootstrap clean
 
-all:	General_ver libraries binaries
-General_ver:
+all: libraries binaries
+
+generate-version:
 	$(QUIET)cd $(SRC_PATH) && sh ./codec/common/generate_version.sh
+
+codec/decoder/plus/src/welsDecoderExt.$(OBJ): | generate-version
+codec/encoder/plus/src/welsEncoderExt.$(OBJ): | generate-version
 
 clean:
 ifeq (android,$(OS))
@@ -189,6 +193,9 @@ $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) 
 ifeq ($(HAVE_GMP_API),Yes)
 plugin: $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX)
 LIBRARIES += $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX)
+ifeq (linux,$(OS))
+LDFLAGS += -Wl,-z,noexecstack
+endif
 else
 plugin:
 	@echo "./gmp-api : No such file or directory."
