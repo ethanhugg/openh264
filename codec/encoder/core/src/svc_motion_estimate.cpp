@@ -43,7 +43,7 @@
 #include "svc_motion_estimate.h"
 #include "wels_transpose_matrix.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 
 const int32_t QStepx16ByQp[52] = {  /* save QStep<<4 for int32_t */
   10,  11,  13,  14,  16,  18,  /* 0~5   */
@@ -102,6 +102,23 @@ void WelsInitMeFunc (SWelsFuncPtrList* pFuncList, uint32_t uiCpuFlag, bool bScre
     //TODO: it is possible to differentiate width that is times of 8, so as to accelerate the speed when width is times of 8?
     pFuncList->pfCalculateSingleBlockFeature[0] = SumOf8x8SingleBlock_c;
     pFuncList->pfCalculateSingleBlockFeature[1] = SumOf16x16SingleBlock_c;
+#if defined (HAVE_NEON)
+    //for feature search
+    pFuncList->pfCalculateBlockFeatureOfFrame[0] = SumOf8x8BlockOfFrame_neon;
+    pFuncList->pfCalculateBlockFeatureOfFrame[1] = SumOf16x16BlockOfFrame_neon;
+    //TODO: it is possible to differentiate width that is times of 8, so as to accelerate the speed when width is times of 8?
+    pFuncList->pfCalculateSingleBlockFeature[0] = SumOf8x8SingleBlock_neon;
+    pFuncList->pfCalculateSingleBlockFeature[1] = SumOf16x16SingleBlock_neon;
+#endif
+
+#if defined (HAVE_NEON_AARCH64)
+    //for feature search
+    pFuncList->pfCalculateBlockFeatureOfFrame[0] = SumOf8x8BlockOfFrame_AArch64_neon;
+    pFuncList->pfCalculateBlockFeatureOfFrame[1] = SumOf16x16BlockOfFrame_AArch64_neon;
+    //TODO: it is possible to differentiate width that is times of 8, so as to accelerate the speed when width is times of 8?
+    pFuncList->pfCalculateSingleBlockFeature[0] = SumOf8x8SingleBlock_AArch64_neon;
+    pFuncList->pfCalculateSingleBlockFeature[1] = SumOf16x16SingleBlock_AArch64_neon;
+#endif
   }
 }
 
@@ -1002,5 +1019,5 @@ void WelsDiamondCrossFeatureSearch (SWelsFuncPtrList* pFunc, SWelsME* pMe, SSlic
 }
 
 
-} // namespace WelsSVCEnc
+} // namespace WelsEnc
 
