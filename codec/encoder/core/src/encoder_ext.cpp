@@ -55,7 +55,7 @@
 #include "slice_multi_threading.h"
 #include "measure_time.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 
 
 int32_t WelsCodeOnePicPartition (sWelsEncCtx* pCtx,
@@ -147,7 +147,8 @@ int32_t ParamValidation (SLogContext* pLogCtx, SWelsSvcCodingParam* pCfg) {
   }
 
 
-  if ((pCfg->iRCMode != RC_OFF_MODE) && (pCfg->iRCMode != RC_QUALITY_MODE) && (pCfg->iRCMode!= RC_BUFFERBASED_MODE)&&(pCfg->iRCMode != RC_BITRATE_MODE)
+  if ((pCfg->iRCMode != RC_OFF_MODE) && (pCfg->iRCMode != RC_QUALITY_MODE) && (pCfg->iRCMode != RC_BUFFERBASED_MODE)
+      && (pCfg->iRCMode != RC_BITRATE_MODE)
       && (pCfg->iRCMode != RC_LOW_BW_MODE)) {
     WelsLog (pLogCtx, WELS_LOG_ERROR, "ParamValidation(),Invalid iRCMode = %d\n", pCfg->iRCMode);
     return ENC_RETURN_UNSUPPORTED_PARA;
@@ -278,7 +279,6 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
     case SM_SINGLE_SLICE:
       pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum = 1;
       pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceSizeConstraint = 0;
-      pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum = 0;
       for (iIdx = 0; iIdx < MAX_SLICES_NUM; iIdx++) {
         pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceMbNum[iIdx] = 0;
       }
@@ -1860,14 +1860,6 @@ int32_t InitSliceSettings (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPar
 
   pCodingParam->iCountThreadsNum				= WELS_MIN (kiCpuCores, iMaxSliceCount);
   pCodingParam->iMultipleThreadIdc	= pCodingParam->iCountThreadsNum;
-
-#ifndef WELS_TESTBED	// for product release and non-SGE testing
-
-  if (kiCpuCores < 2) {	// single CPU core, make no sense for MT parallelization
-    pCodingParam->iMultipleThreadIdc	= 1;
-    pCodingParam->iCountThreadsNum				= 1;
-  }
-#endif
 
   *pMaxSliceCount					= iMaxSliceCount;
 
@@ -3594,7 +3586,8 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
   }
 
 #ifdef ENABLE_FRAME_DUMP
-  DumpRecFrame (fsnr, &pSvcParam->sDependencyLayers[pSvcParam->iSpatialLayerNum-1].sRecFileName[0], pCtx->bRecFlag);	// pDecPic: final reconstruction output
+  DumpRecFrame (fsnr, &pSvcParam->sDependencyLayers[pSvcParam->iSpatialLayerNum - 1].sRecFileName[0],
+                pCtx->bRecFlag);	// pDecPic: final reconstruction output
   pCtx->bRecFlag = true;
 
 #endif//ENABLE_FRAME_DUMP
@@ -3636,7 +3629,8 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
                 (pOldParam->SUsedPicRect.iWidth != pNewParam->SUsedPicRect.iWidth
                  || pOldParam->SUsedPicRect.iHeight != pNewParam->SUsedPicRect.iHeight) ||
                 (pOldParam->bEnableLongTermReference != pNewParam->bEnableLongTermReference) ||
-                (pOldParam->iLTRRefNum != pNewParam->iLTRRefNum);
+                (pOldParam->iLTRRefNum != pNewParam->iLTRRefNum) ||
+                (pOldParam->iMultipleThreadIdc != pNewParam->iMultipleThreadIdc);
   if (pNewParam->iMaxNumRefFrame > pOldParam->iMaxNumRefFrame) {
     bNeedReset = true;
   }
@@ -4003,4 +3997,4 @@ int32_t WelsCodeOnePicPartition (sWelsEncCtx* pCtx,
 
   return ENC_RETURN_SUCCESS;
 }
-} // namespace WelsSVCEnc
+} // namespace WelsEnc
