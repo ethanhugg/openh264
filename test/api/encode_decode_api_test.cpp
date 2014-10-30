@@ -282,9 +282,6 @@ void EncodeDecodeTestAPI::ValidateParamExtCombination() {
   //IntraPeriod
   uiGOPSize = 1 << (param_.iTemporalLayerNum - 1);
   param_.uiIntraPeriod -= param_.uiIntraPeriod % uiGOPSize;
-  if (param_.uiIntraPeriod < 0) {
-    param_.uiIntraPeriod = 0;
-  }
 
 //RefNum
   int32_t iRefUpperBound    = (param_.iUsageType == CAMERA_VIDEO_REAL_TIME) ?
@@ -412,11 +409,8 @@ void EncodeDecodeTestAPI::SliceParamValidationForMode2 (int iSpatialIdx) {
 }
 void EncodeDecodeTestAPI::SliceParamValidationForMode3 (int iSpatialIdx) {
 
-  unsigned int uiMbWidth          = 0;
   unsigned int uiMbHeight         = 0;
-  unsigned int uiMbNumInFrame     = 0;
 
-  uiMbWidth	     = (param_.iPicWidth + 15) >> 4;
   uiMbHeight	 = (param_.iPicHeight + 15) >> 4;
 
   //change slice mode to SM_SINGLE_SLICE
@@ -2002,6 +1996,8 @@ TEST_F (EncodeDecodeTestAPI, SetOptionEncParamExt) {
   int rv = encoder_->InitializeExt (&param_);
   ASSERT_TRUE (rv == cmResultSuccess);
 
+  int32_t iTraceLevel = WELS_LOG_QUIET;
+  encoder_->SetOption (ENCODER_OPTION_TRACE_LEVEL, &iTraceLevel);
   for (int i = 0; i < iEncFrameNum; i++) {
     //for (int i = 0; i < 9; i++) {
     int iResult;
@@ -2033,4 +2029,6 @@ TEST_F (EncodeDecodeTestAPI, SetOptionEncParamExt) {
     }
   }
 
+  iTraceLevel = WELS_LOG_ERROR;
+  encoder_->SetOption (ENCODER_OPTION_TRACE_LEVEL, &iTraceLevel);
 }
