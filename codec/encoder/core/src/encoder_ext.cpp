@@ -307,11 +307,20 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
         break;
       }
       if (pCodingParam->iRCMode != RC_OFF_MODE) {	// multiple slices verify with gom
-        //check uiSliceNum
-        GomValidCheckSliceNum (iMbWidth, iMbHeight, &pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum);
+        //check uiSliceNum and set uiSliceMbNum with current uiSliceNum
+        if (!GomValidCheckSliceNum (iMbWidth, iMbHeight, &pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum)) {
+          WelsLog (pLogCtx, WELS_LOG_WARNING,
+                   "ParamValidationExt(), unsupported setting with Resolution and uiSliceNum combination under RC on! So uiSliceNum is changed to %d!",
+                   pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum);
+        }
+        if (pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum <= 1 ||
+            !GomValidCheckSliceMbNum (iMbWidth, iMbHeight, &pSpatialLayer->sSliceCfg.sSliceArgument)) {
+          WelsLog (pLogCtx, WELS_LOG_ERROR,
+                   "ParamValidationExt(), unsupported setting with Resolution and uiSliceNum (%d) combination  under RC on! Consider setting single slice with this resolution!",
+                   pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum);
+          return ENC_RETURN_UNSUPPORTED_PARA;
+        }
         assert (pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum > 1);
-        //set uiSliceMbNum with current uiSliceNum
-        GomValidCheckSliceMbNum (iMbWidth, iMbHeight, &pSpatialLayer->sSliceCfg.sSliceArgument);
       } else if (!CheckFixedSliceNumMultiSliceSetting (iMbNumInFrame,
                  &pSpatialLayer->sSliceCfg.sSliceArgument)) {	// verify interleave mode settings
         //check uiSliceMbNum with current uiSliceNum
@@ -936,9 +945,13 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx) {
                    pParam->iMaxNumRefFrame,
                    iSpsId, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE);
 
-      if (iDlayerCount > 1) {
+      if (pDlayerParam->uiProfileIdc == PRO_BASELINE) {
         pSps->bConstraintSet0Flag = true;
+      }
+      if (pDlayerParam->uiProfileIdc <= PRO_MAIN) {
         pSps->bConstraintSet1Flag = true;
+      }
+      if (iDlayerCount > 1) {
         pSps->bConstraintSet2Flag = true;
       }
     } else {
@@ -948,7 +961,7 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx) {
     }
 
     // initialize pPps
-    WelsInitPps (pPps, pSps, pSubsetSps, iPpsId, true, bUseSubsetSps,pParam->iEntropyCodingModeFlag);
+    WelsInitPps (pPps, pSps, pSubsetSps, iPpsId, true, bUseSubsetSps,pParam->iEntropyCodingModeFlag != 0);
 
     // Not using FMO in SVC coding so far, come back if need FMO
     {
@@ -1858,11 +1871,19 @@ int32_t InitSliceSettings (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPar
         break;
       }
       if (pCodingParam->iRCMode != RC_OFF_MODE) {	// multiple slices verify with gom
-        //check uiSliceNum
-        GomValidCheckSliceNum (kiMbWidth, kiMbHeight, &pDlp->sSliceCfg.sSliceArgument.uiSliceNum);
-        assert (pDlp->sSliceCfg.sSliceArgument.uiSliceNum > 1);
-        //set uiSliceMbNum with current uiSliceNum
-        GomValidCheckSliceMbNum (kiMbWidth, kiMbHeight, &pDlp->sSliceCfg.sSliceArgument);
+        //check uiSliceNum and set uiSliceMbNum with current uiSliceNum
+        if (!GomValidCheckSliceNum (kiMbWidth, kiMbHeight, &pDlp->sSliceCfg.sSliceArgument.uiSliceNum)) {
+          WelsLog (pLogCtx, WELS_LOG_WARNING,
+                   "ParamValidationExt(), unsupported setting with Resolution and uiSliceNum combination under RC on! So uiSliceNum is changed to %d!",
+                   pDlp->sSliceCfg.sSliceArgument.uiSliceNum);
+        }
+        if (pDlp->sSliceCfg.sSliceArgument.uiSliceNum <= 1 ||
+            !GomValidCheckSliceMbNum (kiMbWidth, kiMbHeight, &pDlp->sSliceCfg.sSliceArgument)) {
+          WelsLog (pLogCtx, WELS_LOG_ERROR,
+                   "ParamValidationExt(), unsupported setting with Resolution and uiSliceNum (%d) combination  under RC on! Consider setting single slice with this resolution!",
+                   pDlp->sSliceCfg.sSliceArgument.uiSliceNum);
+          return ENC_RETURN_INVALIDINPUT;
+        }
       } else if (!CheckFixedSliceNumMultiSliceSetting (kiMbNumInFrame,
                  &pDlp->sSliceCfg.sSliceArgument)) {	// verify interleave mode settings
         //check uiSliceMbNum with current uiSliceNum
@@ -1894,7 +1915,7 @@ int32_t InitSliceSettings (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPar
       2; // Disable loop filter on slice boundaries since that's not allowed with multithreading
   *pMaxSliceCount					= iMaxSliceCount;
 
-  return 0;
+  return ENC_RETURN_SUCCESS;
 }
 
 /*!

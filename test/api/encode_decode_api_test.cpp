@@ -231,7 +231,7 @@ void EncodeDecodeTestAPI::RandomParamExtCombination() {
   param_.bEnableFrameCroppingFlag   = (rand() % 2 == 0) ? false : true;
   param_.bEnableSceneChangeDetect   = (rand() % 2 == 0) ? false : true;
 
-//for rc
+  //for rc
   param_.iRCMode            = static_cast<RC_MODES> (rand() % RC_MODE_RANGE - 1);
   param_.iMaxBitrate        = rand() % BIT_RATE_RANGE;
   param_.iTargetBitrate     = rand() % BIT_RATE_RANGE;
@@ -283,7 +283,7 @@ void EncodeDecodeTestAPI::ValidateParamExtCombination() {
   uiGOPSize = 1 << (param_.iTemporalLayerNum - 1);
   param_.uiIntraPeriod -= param_.uiIntraPeriod % uiGOPSize;
 
-//RefNum
+  //RefNum
   int32_t iRefUpperBound    = (param_.iUsageType == CAMERA_VIDEO_REAL_TIME) ?
                               MAX_REFERENCE_PICTURE_COUNT_NUM_CAMERA : MAX_REFERENCE_PICTURE_COUNT_NUM_SCREEN;
   param_.iNumRefFrame       = WELS_CLIP3 (param_.iNumRefFrame, MIN_REF_PIC_COUNT, iRefUpperBound);
@@ -1985,8 +1985,8 @@ TEST_F (EncodeDecodeTestAPI, Engine_SVC_Switch_P) {
 
 
 TEST_F (EncodeDecodeTestAPI, SetOptionEncParamExt) {
-  int iWidth       = WELS_CLIP3 ((((rand() % MAX_WIDTH) >> 1) + 1) << 1,  2, MAX_WIDTH);
-  int iHeight      = WELS_CLIP3 ((((rand() % MAX_HEIGHT) >> 1) + 1) << 1, 2, MAX_HEIGHT);
+  int iWidth       = (((rand() % MAX_WIDTH) >> 1) + 16) << 1;
+  int iHeight      = (((rand() % MAX_HEIGHT) >> 1) + 16) << 1;
   float fFrameRate = rand() + 0.5f;
   int iEncFrameNum = WELS_CLIP3 ((rand() % ENCODE_FRAME_NUM) + 1, 1, ENCODE_FRAME_NUM);
   int iSpatialLayerNum = 4;
@@ -1999,7 +1999,6 @@ TEST_F (EncodeDecodeTestAPI, SetOptionEncParamExt) {
   int32_t iTraceLevel = WELS_LOG_QUIET;
   encoder_->SetOption (ENCODER_OPTION_TRACE_LEVEL, &iTraceLevel);
   for (int i = 0; i < iEncFrameNum; i++) {
-    //for (int i = 0; i < 9; i++) {
     int iResult;
     int len = 0;
     unsigned char* pData[3] = { NULL };
