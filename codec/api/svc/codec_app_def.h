@@ -133,7 +133,9 @@ typedef enum {
 typedef enum {
   ERROR_CON_DISABLE = 0,
   ERROR_CON_FRAME_COPY,
-  ERROR_CON_SLICE_COPY
+  ERROR_CON_SLICE_COPY,
+  ERROR_CON_FRAME_COPY_CROSS_IDR,
+  ERROR_CON_SLICE_COPY_CROSS_IDR
 } ERROR_CON_IDC;
 
 typedef enum { //feedback that whether or not have VCL NAL in current AU
@@ -484,14 +486,14 @@ typedef struct TagVideoDecoderStatistics {
   unsigned int uiWidth;					// the width of encode/decode frame
   unsigned int uiHeight;					// the height of encode/decode frame
   float fAverageFrameSpeedInMs; // Average_Decoding_Time
-
   unsigned int uiDecodedFrameCount; // number of frames
   unsigned int uiResolutionChangeTimes; // uiResolutionChangeTimes
-  unsigned int
-  uiAvgEcRatio; // when EC is on, the average ratio of correct or EC areas, can be an indicator of reconstruction quality
-  unsigned int uiIDRReqNum;	// number of actual IDR request
-  unsigned int uiLTRReqNum;	// number of actual LTR request
   unsigned int uiIDRRecvNum;	// number of actual IDR received
+  //EC on related
+  unsigned int uiAvgEcRatio; // when EC is on, the average ratio of correct or EC areas, can be an indicator of reconstruction quality
+  unsigned int uiEcIDRNum;	// number of actual unintegrity IDR or not received but eced
+  unsigned int uiEcFrameNum; //
+  unsigned int uiIDRLostNum;//Decoder detect out the number of lost IDR lost
 } SDecoderStatistics; // in building, coming soon
 
 #endif//WELS_VIDEO_CODEC_APPLICATION_DEFINITION_H__
