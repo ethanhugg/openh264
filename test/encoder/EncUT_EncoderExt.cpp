@@ -90,7 +90,7 @@ void EncoderInterfaceTest::PrepareOneSrcFrame() {
     if ((i % 256) == 0)
       pYUV[i] = rand() % 256;
     else
-      pYUV[i] = WELS_CLIP3 (pYUV[i - 1] + (rand() % 3) - 1, 0, 255);
+      pYUV[i] = (pYUV[i - 1] + (rand() % 3) - 1) & 0xff;
   }
   pSrcPic->iStride[0] = m_iWidth;
   pSrcPic->iStride[1] = pSrcPic->iStride[2] = pSrcPic->iStride[0] >> 1;
@@ -745,7 +745,7 @@ TEST_F (EncoderInterfaceTest, GetStatistics) {
   EXPECT_EQ (iResult, static_cast<int> (cmResultSuccess));
   iResult = pPtrEnc->GetOption (ENCODER_OPTION_GET_STATISTICS, &sEncoderStatistics);
   EXPECT_EQ (iResult, static_cast<int> (cmResultSuccess));
-  EXPECT_EQ (static_cast<int> (sEncoderStatistics.fAverageFrameRate), sEncoderStatistics.uiInputFrameCount);
+  EXPECT_EQ (static_cast<unsigned int> (sEncoderStatistics.fAverageFrameRate), sEncoderStatistics.uiInputFrameCount);
 
   // 4, change log interval
   int32_t iInterval = 0;
@@ -766,6 +766,34 @@ TEST_F (EncoderInterfaceTest, GetStatistics) {
   iResult = pPtrEnc->GetOption (ENCODER_OPTION_STATISTICS_LOG_INTERVAL, &iInterval);
   EXPECT_EQ (iResult, static_cast<int> (cmResultSuccess));
   EXPECT_EQ (iInterval, iInterval2);
+
+  // finish
+  pPtrEnc->Uninitialize();
+}
+
+TEST_F (EncoderInterfaceTest, FrameSizeCheck) {
+  SEncParamBase sEncParamBase;
+  GetValidEncParamBase (&sEncParamBase);
+
+  int iResult = pPtrEnc->Initialize (&sEncParamBase);
+  EXPECT_EQ (iResult, static_cast<int> (cmResultSuccess));
+  if (iResult != cmResultSuccess) {
+    fprintf (stderr, "Unexpected ParamBase? \
+             iUsageType=%d, Pic=%dx%d, TargetBitrate=%d, iRCMode=%d, fMaxFrameRate=%.1f\n",
+             sEncParamBase.iUsageType, sEncParamBase.iPicWidth, sEncParamBase.iPicHeight,
+             sEncParamBase.iTargetBitrate, sEncParamBase.iRCMode, sEncParamBase.fMaxFrameRate);
+  }
+
+  PrepareOneSrcFrame();
+  iResult = pPtrEnc->EncodeFrame (pSrcPic, &sFbi);
+
+  int length = 0;
+  for (int i = 0; i < sFbi.iLayerNum; ++i) {
+    for (int j = 0; j < sFbi.sLayerInfo[i].iNalCount; ++j) {
+      length += sFbi.sLayerInfo[i].pNalLengthInByte[j];
+    }
+  }
+  EXPECT_EQ (length, sFbi.iFrameSizeInBytes);
 
   // finish
   pPtrEnc->Uninitialize();

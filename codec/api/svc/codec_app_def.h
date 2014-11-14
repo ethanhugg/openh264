@@ -135,7 +135,8 @@ typedef enum {
   ERROR_CON_FRAME_COPY,
   ERROR_CON_SLICE_COPY,
   ERROR_CON_FRAME_COPY_CROSS_IDR,
-  ERROR_CON_SLICE_COPY_CROSS_IDR
+  ERROR_CON_SLICE_COPY_CROSS_IDR,
+  ERROR_CON_SLICE_COPY_CROSS_IDR_FREEZE_RES_CHANGE
 } ERROR_CON_IDC;
 
 typedef enum { //feedback that whether or not have VCL NAL in current AU
@@ -404,6 +405,7 @@ typedef struct {
   SLayerBSInfo	sLayerInfo[MAX_LAYER_NUM_OF_FRAME];
 
   EVideoFrameType eFrameType;
+  int   iFrameSizeInBytes;
   long long uiTimeStamp;
 } SFrameBSInfo, *PFrameBSInfo;
 
