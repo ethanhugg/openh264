@@ -125,6 +125,11 @@ enum {
 #define PADDING_BUFFER_RATIO 50 // *INT_MULTIPLY
 #define PADDING_THRESHOLD    5 //*INT_MULTIPLY
 
+#define VIRTUAL_BUFFER_LOW_TH   120 //*INT_MULTIPLY
+#define VIRTUAL_BUFFER_HIGH_TH  180 //*INT_MULTIPLY
+
+#define _BITS_RANGE 0
+
 enum {
   EVEN_TIME_WINDOW  =0,
   ODD_TIME_WINDOW   =1,
@@ -247,6 +252,10 @@ typedef  void (*PWelsRCPictureDelayJudgeFunc) (void* pCtx, EVideoFrameType eFram
 typedef  void (*PWelsRCPictureInfoUpdateFunc) (void* pCtx, int32_t iLayerSize);
 typedef  void (*PWelsRCMBInfoUpdateFunc) (void* pCtx, SMB* pCurMb, int32_t iCostLuma, SSlice* pSlice);
 typedef  void (*PWelsRCMBInitFunc) (void* pCtx, SMB* pCurMb, SSlice* pSlice);
+typedef  bool (*PWelsCheckFrameSkipBasedMaxbrFunc) (void* pCtx, int32_t iSpatialNum, EVideoFrameType eFrameType,
+                                   const uint32_t uiTimeStamp);
+typedef  void (*PWelsUpdateBufferWhenFrameSkippedFunc)(void* pCtx, int32_t iSpatialNum);
+typedef  void (*PWelsUpdateMaxBrCheckWindowStatusFunc)(void* pCtx, int32_t iSpatialNum, const long long uiTimeStamp);
 
 typedef  struct  WelsRcFunc_s {
 PWelsRCPictureInitFunc			pfWelsRcPictureInit;
@@ -254,6 +263,9 @@ PWelsRCPictureDelayJudgeFunc      pfWelsRcPicDelayJudge;
 PWelsRCPictureInfoUpdateFunc	pfWelsRcPictureInfoUpdate;
 PWelsRCMBInitFunc				pfWelsRcMbInit;
 PWelsRCMBInfoUpdateFunc			pfWelsRcMbInfoUpdate;
+PWelsCheckFrameSkipBasedMaxbrFunc pfWelsCheckSkipBasedMaxbr;
+PWelsUpdateBufferWhenFrameSkippedFunc pfWelsUpdateBufferWhenSkip;
+PWelsUpdateMaxBrCheckWindowStatusFunc pfWelsUpdateMaxBrWindowStatus;
 } SWelsRcFunc;
 
 bool CheckFrameSkipBasedMaxbr (void* pCtx, int32_t iSpatialNum, EVideoFrameType eFrameType,
