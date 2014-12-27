@@ -107,7 +107,43 @@ int32_t WelsBitRateVerification (SLogContext* pLogCtx, SSpatialLayerConfig* pLay
   return ENC_RETURN_SUCCESS;
 }
 
-
+void CheckProfileSetting (SLogContext* pLogCtx, SWelsSvcCodingParam* pParam, int32_t iLayer, EProfileIdc uiProfileIdc) {
+  SSpatialLayerConfig* pLayerInfo = &pParam->sSpatialLayers[iLayer];
+  pLayerInfo->uiProfileIdc = uiProfileIdc;
+  if ((iLayer == SPATIAL_LAYER_0) && (uiProfileIdc != PRO_BASELINE)) {
+    pLayerInfo->uiProfileIdc = PRO_BASELINE;
+    WelsLog (pLogCtx, WELS_LOG_WARNING, "doesn't support profile(%d),change to baseline profile",
+             uiProfileIdc);
+  }
+  if (iLayer > SPATIAL_LAYER_0) {
+    if ((uiProfileIdc != PRO_BASELINE) || (uiProfileIdc != PRO_SCALABLE_BASELINE)) {
+      pLayerInfo->uiProfileIdc = PRO_BASELINE;
+      WelsLog (pLogCtx, WELS_LOG_WARNING, "doesn't support profile(%d),change to baseline profile",
+               uiProfileIdc);
+    }
+  }
+}
+void CheckLevelSetting (SLogContext* pLogCtx, SWelsSvcCodingParam* pParam, int32_t iLayer, ELevelIdc uiLevelIdc) {
+  SSpatialLayerConfig* pLayerInfo = &pParam->sSpatialLayers[iLayer];
+  pLayerInfo->uiLevelIdc = uiLevelIdc;
+  if (uiLevelIdc == LEVEL_UNKNOWN) {
+    pLayerInfo->uiLevelIdc = LEVEL_1_0;
+    WelsLog (pLogCtx, WELS_LOG_INFO, "change LEVEL_UNKNOWN to LEVEL_1_0");
+  } else if ((uiLevelIdc < LEVEL_1_0) || (uiLevelIdc > LEVEL_5_2)) {
+    pLayerInfo->uiLevelIdc = LEVEL_1_0;
+    WelsLog (pLogCtx, WELS_LOG_WARNING, "doesn't support level(%d) change to LEVEL_1_0", uiLevelIdc);
+  }
+}
+void CheckReferenceNumSetting (SLogContext* pLogCtx, SWelsSvcCodingParam* pParam, int32_t iNumRef) {
+  int32_t iRefUpperBound = (pParam->iUsageType == CAMERA_VIDEO_REAL_TIME) ?
+                           MAX_REFERENCE_PICTURE_COUNT_NUM_CAMERA : MAX_REFERENCE_PICTURE_COUNT_NUM_SCREEN;
+  pParam->iNumRefFrame = iNumRef;
+  if ((iNumRef < MIN_REF_PIC_COUNT) || (iNumRef > iRefUpperBound)) {
+    pParam->iNumRefFrame = AUTO_REF_PIC_COUNT;
+    WelsLog (pLogCtx, WELS_LOG_WARNING,
+             "doesn't support the number of reference frame(%d) change to auto select mode", iNumRef);
+  }
+}
 /*!
  * \brief	validate checking in parameter configuration
  * \pParam	pParam		SWelsSvcCodingParam*
@@ -157,6 +193,7 @@ int32_t ParamValidation (SLogContext* pLogCtx, SWelsSvcCodingParam* pCfg) {
   }
   for (i = 0; i < pCfg->iSpatialLayerNum; ++ i) {
     SSpatialLayerInternal* fDlp = &pCfg->sDependencyLayers[i];
+    SSpatialLayerConfig* pConfig = &pCfg->sSpatialLayers[i];
     if (fDlp->fOutputFrameRate > fDlp->fInputFrameRate || (fDlp->fInputFrameRate >= -fEpsn
         && fDlp->fInputFrameRate <= fEpsn)
         || (fDlp->fOutputFrameRate >= -fEpsn && fDlp->fOutputFrameRate <= fEpsn)) {
@@ -170,11 +207,12 @@ int32_t ParamValidation (SLogContext* pLogCtx, SWelsSvcCodingParam* pCfg) {
                "AUTO CORRECT: Invalid settings in input frame rate(%.6f) and output frame rate(%.6f) of layer #%d config file: iResult of output frame rate divided by input frame rate should be power of 2(i.e,in/pOut=2^n). \n Auto correcting Output Framerate to Input Framerate %f!\n",
                fDlp->fInputFrameRate, fDlp->fOutputFrameRate, i, fDlp->fInputFrameRate);
       fDlp->fOutputFrameRate = fDlp->fInputFrameRate;
+      pConfig->fFrameRate = fDlp->fOutputFrameRate;
     }
   }
 
   if ((pCfg->iRCMode != RC_OFF_MODE) && (pCfg->iRCMode != RC_QUALITY_MODE) && (pCfg->iRCMode != RC_BUFFERBASED_MODE)
-      && (pCfg->iRCMode != RC_BITRATE_MODE)) {
+      && (pCfg->iRCMode != RC_BITRATE_MODE)&& (pCfg->iRCMode != RC_TIMESTAMP_MODE)) {
     WelsLog (pLogCtx, WELS_LOG_ERROR, "ParamValidation(),Invalid iRCMode = %d", pCfg->iRCMode);
     return ENC_RETURN_UNSUPPORTED_PARA;
   }
@@ -198,10 +236,10 @@ int32_t ParamValidation (SLogContext* pLogCtx, SWelsSvcCodingParam* pCfg) {
                iTotalBitrate, pCfg->iTargetBitrate);
       return ENC_RETURN_INVALIDINPUT;
     }
-    if ((pCfg->iRCMode == RC_QUALITY_MODE) || (pCfg->iRCMode == RC_BITRATE_MODE))
+    if ((pCfg->iRCMode == RC_QUALITY_MODE) || (pCfg->iRCMode == RC_BITRATE_MODE) || (pCfg->iRCMode == RC_TIMESTAMP_MODE))
       if (!pCfg->bEnableFrameSkip)
         WelsLog (pLogCtx, WELS_LOG_WARNING,
-                 "bEnableFrameSkip = %d,bitrate can't be controlled for RC_QUALITY_MODE and RC_BITRATE_MODE without enabling skip frame.",
+                 "bEnableFrameSkip = %d,bitrate can't be controlled for RC_QUALITY_MODE,RC_BITRATE_MODE and RC_TIMESTAMP_MODE without enabling skip frame.",
                  pCfg->bEnableFrameSkip);
   }
   return WelsCheckRefFrameLimitation (pLogCtx, pCfg);
@@ -309,6 +347,8 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
                pSpatialLayer->sSliceCfg.uiSliceMode, pCodingParam->uiMaxNalSize);
       return ENC_RETURN_UNSUPPORTED_PARA;
     }
+    CheckProfileSetting (pLogCtx, pCodingParam, i, pSpatialLayer->uiProfileIdc);
+    CheckLevelSetting (pLogCtx, pCodingParam, i, pSpatialLayer->uiLevelIdc);
     //check pSlice settings under multi-pSlice
     if (kiPicWidth <= 16 && kiPicHeight <= 16) {
       //only have one MB, set to single_slice
@@ -483,7 +523,8 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
 
 
 void WelsEncoderApplyFrameRate (SWelsSvcCodingParam* pParam) {
-  SSpatialLayerInternal* pLayerParam;
+  SSpatialLayerInternal* pLayerParamInternal;
+  SSpatialLayerConfig* pLayerParam;
   const float kfEpsn = 0.000001f;
   const int32_t kiNumLayer = pParam->iSpatialLayerNum;
   int32_t i;
@@ -493,14 +534,15 @@ void WelsEncoderApplyFrameRate (SWelsSvcCodingParam* pParam) {
 
   //set input frame rate to each layer
   for (i = 0; i < kiNumLayer; i++) {
-    pLayerParam = & (pParam->sDependencyLayers[i]);
-
-    fRatio = pLayerParam->fOutputFrameRate / pLayerParam->fInputFrameRate;
-    if ((kfMaxFrameRate - pLayerParam->fInputFrameRate) > kfEpsn
-        || (kfMaxFrameRate - pLayerParam->fInputFrameRate) < -kfEpsn) {
-      pLayerParam->fInputFrameRate = kfMaxFrameRate;
+    pLayerParamInternal = & (pParam->sDependencyLayers[i]);
+    pLayerParam = & (pParam->sSpatialLayers[i]);
+    fRatio = pLayerParamInternal->fOutputFrameRate / pLayerParamInternal->fInputFrameRate;
+    if ((kfMaxFrameRate - pLayerParamInternal->fInputFrameRate) > kfEpsn
+        || (kfMaxFrameRate - pLayerParamInternal->fInputFrameRate) < -kfEpsn) {
+      pLayerParamInternal->fInputFrameRate = kfMaxFrameRate;
       fTargetOutputFrameRate = kfMaxFrameRate * fRatio;
-      pLayerParam->fOutputFrameRate = (fTargetOutputFrameRate >= 6) ? fTargetOutputFrameRate : (pLayerParam->fInputFrameRate);
+      pLayerParamInternal->fOutputFrameRate = (fTargetOutputFrameRate >= 6) ? fTargetOutputFrameRate : (pLayerParamInternal->fInputFrameRate);
+      pLayerParam->fFrameRate = pLayerParamInternal->fOutputFrameRate;
       //TODO:{Sijia} from design, there is no sense to have temporal layer when under 6fps even with such setting?
     }
   }
@@ -3272,7 +3314,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
     if ((pSvcParam->iRCMode != RC_OFF_MODE))
       pCtx->pVpp->AnalyzePictureComplexity (pCtx, pCtx->pEncPic, ((pCtx->eSliceType == P_SLICE)
                                             && (pCtx->iNumRef0 > 0)) ? pCtx->pRefList0[0] : NULL,
-                                            iCurDid,(pCtx->eSliceType == P_SLICE)&&(pSvcParam->bEnableBackgroundDetection));
+                                            iCurDid, (pCtx->eSliceType == P_SLICE) && (pSvcParam->bEnableBackgroundDetection));
     WelsUpdateRefSyntax (pCtx,  pCtx->iPOC,
                          eFrameType);	//get reordering syntax used for writing slice header and transmit to encoder.
     PrefetchReferencePicture (pCtx, eFrameType);	// update reference picture for current pDq layer
