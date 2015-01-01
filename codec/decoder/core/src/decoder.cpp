@@ -306,7 +306,7 @@ void WelsDecoderDefaults (PWelsDecoderContext pCtx, SLogContext* pLogCtx) {
   pCtx->pPicBuff[LIST_1]		= NULL;
 
   pCtx->bAvcBasedFlag			= true;
-  pCtx->eErrorConMethod = ERROR_CON_SLICE_COPY_CROSS_IDR_FREEZE_RES_CHANGE;
+  pCtx->eErrorConMethod = ERROR_CON_SLICE_MV_COPY_CROSS_IDR_FREEZE_RES_CHANGE;
   pCtx->pPreviousDecodedPictureInDpb = NULL;
   pCtx->sDecoderStatistics.iAvgLumaQp = -1;
   pCtx->bSpsLatePps = false;
@@ -516,9 +516,11 @@ int32_t DecoderConfigParam (PWelsDecoderContext pCtx, const SDecodingParam* kpPa
 
   memcpy (pCtx->pParam, kpParam, sizeof (SDecodingParam));
   pCtx->eOutputColorFormat	= pCtx->pParam->eOutputColorFormat;
-  int32_t iRet = DecoderSetCsp (pCtx, pCtx->pParam->eOutputColorFormat);
-  if (iRet)
-    return iRet;
+  if (!pCtx->bParseOnly) {
+    int32_t iRet = DecoderSetCsp (pCtx, pCtx->pParam->eOutputColorFormat);
+    if (iRet)
+      return iRet;
+  }
   pCtx->eErrorConMethod = pCtx->pParam->eEcActiveIdc;
 
   if (pCtx->bParseOnly) //parse only, disable EC method

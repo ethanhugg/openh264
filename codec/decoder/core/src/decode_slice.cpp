@@ -134,7 +134,8 @@ int32_t WelsTargetSliceConstruction (PWelsDecoderContext pCtx) {
 
   pDeblockMb = WelsDeblockingMb;
 
-  if (1 == pSliceHeader->uiDisableDeblockingFilterIdc) {
+  if (1 == pSliceHeader->uiDisableDeblockingFilterIdc
+      || pCtx->pCurDqLayer->sLayerInfo.sSliceInLayer.iTotalMbInCurSlice <= 0) {
     return 0;//NO_SUPPORTED_FILTER_IDX
   } else {
     WelsDeblockingFilterSlice (pCtx, pDeblockMb);
@@ -1479,8 +1480,6 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
     uiCbpL = pCurLayer->pCbp[iMbXy] & 15;
   }
 
-  memset (pCurLayer->pScaledTCoeff[iMbXy], 0, MB_COEFF_LIST_SIZE * sizeof (int16_t));
-
   ST32A4 (&pNzc[0], 0);
   ST32A4 (&pNzc[4], 0);
   ST32A4 (&pNzc[8], 0);
@@ -1495,7 +1494,7 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
 
   if (pCurLayer->pCbp[iMbXy] || MB_TYPE_INTRA16x16 == pCurLayer->pMbType[iMbXy]) {
     int32_t iQpDelta, iId8x8, iId4x4;
-
+    memset (pCurLayer->pScaledTCoeff[iMbXy], 0, MB_COEFF_LIST_SIZE * sizeof (int16_t));
     WELS_READ_VERIFY (BsGetSe (pBs, &iCode)); //mb_qp_delta
     iQpDelta = iCode;
 
