@@ -1762,7 +1762,7 @@ int32_t ConstructAccessUnit (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferI
   iErr = DecodeCurrentAccessUnit (pCtx, ppDst, pDstInfo);
 
   if (pCtx->bParseOnly) {
-    if ((dsErrorFree == pCtx->iErrorCode) && (pCtx->iTotalNumMbRec == pCtx->pSps->iMbHeight * pCtx->pSps->iMbWidth)) {
+    if ((dsErrorFree == pCtx->iErrorCode) && ((uint32_t) pCtx->iTotalNumMbRec == pCtx->pSps->iMbHeight * pCtx->pSps->iMbWidth)) {
       SParserBsInfo* pParser = pCtx->pParserBsInfo;
       uint8_t* pDstBuf = pParser->pDstBuff;
       SNalUnit* pCurNal = NULL;
@@ -1801,6 +1801,7 @@ int32_t ConstructAccessUnit (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferI
         memcpy (pDstBuf, pNalBs, iNalLen);
         pDstBuf += iNalLen;
       }
+      pCtx->iTotalNumMbRec = 0;
     } else { //error
       pCtx->pParserBsInfo->uiOutBsTimeStamp = 0;
       pCtx->pParserBsInfo->iNalNum = 0;
