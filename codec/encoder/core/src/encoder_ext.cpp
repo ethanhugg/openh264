@@ -242,7 +242,14 @@ int32_t ParamValidation (SLogContext* pLogCtx, SWelsSvcCodingParam* pCfg) {
                  "bEnableFrameSkip = %d,bitrate can't be controlled for RC_QUALITY_MODE,RC_BITRATE_MODE and RC_TIMESTAMP_MODE without enabling skip frame.",
                  pCfg->bEnableFrameSkip);
   }
-  return WelsCheckRefFrameLimitation (pLogCtx, pCfg);
+  // ref-frames validation
+  if (((pCfg->iUsageType == CAMERA_VIDEO_REAL_TIME) || (pCfg->iUsageType == SCREEN_CONTENT_REAL_TIME))
+      ? WelsCheckRefFrameLimitationNumRefFirst (pLogCtx, pCfg)
+      : WelsCheckRefFrameLimitationLevelIdcFirst (pLogCtx, pCfg)) {
+    WelsLog (pLogCtx, WELS_LOG_ERROR, "WelsCheckRefFrameLimitation failed");
+    return ENC_RETURN_INVALIDINPUT;
+  }
+  return ENC_RETURN_SUCCESS;
 }
 
 
@@ -3727,11 +3734,6 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
       WelsSwapDqLayers (pCtx);
     }
 
-    if (pSvcParam->bEnableLongTermReference && (pCtx->pLtr[pCtx->uiDependencyId].bLTRMarkingFlag
-        && (pCtx->pLtr[pCtx->uiDependencyId].iLTRMarkMode == LTR_DELAY_MARK))) {
-      pCtx->bLongTermRefFlag[iDidIdx][0] = true;
-    }
-
     if (pCtx->pVpp->UpdateSpatialPictures (pCtx, pSvcParam, iCurTid, iDidIdx) != 0) {
       ForceCodingIDR (pCtx);
       WelsLog (pLogCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), Logic Error Found in temporal level. ForceCodingIDR!");
@@ -3742,7 +3744,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
 
     if (pSvcParam->bEnableLongTermReference && ((pCtx->pLtr[pCtx->uiDependencyId].bLTRMarkingFlag
         && (pCtx->pLtr[pCtx->uiDependencyId].iLTRMarkMode == LTR_DIRECT_MARK)) || eFrameType == videoFrameTypeIDR)) {
-      pCtx->bLongTermRefFlag[iDidIdx][iCurTid] = true;
+      pCtx->bRefOfCurTidIsLtr[iDidIdx][iCurTid] = true;
     }
   }
 
@@ -4017,12 +4019,20 @@ int32_t WelsEncoderApplyLTR (SLogContext* pLogCtx, sWelsEncCtx** ppCtx, SLTRConf
     iNumRefFrame		= WELS_CLIP3 (iNumRefFrame, MIN_REF_PIC_COUNT, MAX_REFERENCE_PICTURE_COUNT_NUM_CAMERA);
 
   }
-  if (sConfig.iNumRefFrame < iNumRefFrame)
-    sConfig.iNumRefFrame = iNumRefFrame;
-  if (sConfig.iNumRefFrame > sConfig.iMaxNumRefFrame)
-    sConfig.iMaxNumRefFrame = sConfig.iNumRefFrame;
+  if (iNumRefFrame > sConfig.iMaxNumRefFrame) {
+    WelsLog (pLogCtx, WELS_LOG_WARNING,
+             " CWelsH264SVCEncoder::SetOption LTR flag = %d and number = %d: Required number of reference increased to %d and iMaxNumRefFrame is adjusted (from %d)",
+             sConfig.bEnableLongTermReference, sConfig.iLTRRefNum, iNumRefFrame, sConfig.iMaxNumRefFrame);
+    sConfig.iMaxNumRefFrame = iNumRefFrame;
+  }
 
-  WelsLog (pLogCtx, WELS_LOG_INFO, " CWelsH264SVCEncoder::SetOption enable LTR = %d,ltrnum = %d",
+  if (sConfig.iNumRefFrame < iNumRefFrame) {
+    WelsLog (pLogCtx, WELS_LOG_WARNING,
+             " CWelsH264SVCEncoder::SetOption LTR flag = %d and number = %d, Required number of reference increased from Old = %d to New = %d because of LTR setting",
+             sConfig.bEnableLongTermReference, sConfig.iLTRRefNum, sConfig.iNumRefFrame, iNumRefFrame);
+    sConfig.iNumRefFrame = iNumRefFrame;
+  }
+  WelsLog (pLogCtx, WELS_LOG_INFO, "CWelsH264SVCEncoder::SetOption enable LTR = %d,ltrnum = %d",
            sConfig.bEnableLongTermReference, sConfig.iLTRRefNum);
   iRet = WelsEncoderParamAdjust (ppCtx, &sConfig);
   return iRet;
