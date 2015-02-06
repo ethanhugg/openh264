@@ -3030,8 +3030,7 @@ TEST_F (EncodeDecodeTestAPI, ParameterSetStrategy_SPS_PPS_LISTING3) {
 
 
 TEST_F (EncodeDecodeTestAPI, SimulcastSVC) {
-#define LAYER_NUM (4)
-  int iSpatialLayerNum = WelsClip3 ((rand() % LAYER_NUM), 2, LAYER_NUM);
+  int iSpatialLayerNum = WelsClip3 ((rand() % MAX_SPATIAL_LAYER_NUM), 2, MAX_SPATIAL_LAYER_NUM);
   int iWidth       = WelsClip3 ((((rand() % MAX_WIDTH) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_WIDTH);
   int iHeight      = WelsClip3 ((((rand() % MAX_HEIGHT) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_HEIGHT);
   float fFrameRate = rand() + 0.5f;
@@ -3043,12 +3042,12 @@ TEST_F (EncodeDecodeTestAPI, SimulcastSVC) {
   int rv = encoder_->InitializeExt (&param_);
   ASSERT_TRUE (rv == cmResultSuccess);
 
-  unsigned char*  pBsBuf[LAYER_NUM];
-  int aLen[LAYER_NUM] = {0};
-  ISVCDecoder* decoder[LAYER_NUM];
+  unsigned char*  pBsBuf[MAX_SPATIAL_LAYER_NUM];
+  int aLen[MAX_SPATIAL_LAYER_NUM] = {0};
+  ISVCDecoder* decoder[MAX_SPATIAL_LAYER_NUM];
 
 #ifdef DEBUG_FILE_SAVE2
-  FILE* fEnc[LAYER_NUM] = { NULL };
+  FILE* fEnc[MAX_SPATIAL_LAYER_NUM] = { NULL };
   fEnc[0] = fopen ("enc0.264", "wb");
   fEnc[1] = fopen ("enc1.264", "wb");
   fEnc[2] = fopen ("enc2.264", "wb");
@@ -3059,11 +3058,12 @@ TEST_F (EncodeDecodeTestAPI, SimulcastSVC) {
   int iIdx = 0;
   for (iIdx = 0; iIdx < iSpatialLayerNum; iIdx++) {
     pBsBuf[iIdx] = static_cast<unsigned char*> (malloc (iWidth * iHeight * 3 * sizeof (unsigned char) / 2));
+    EXPECT_TRUE (pBsBuf[iIdx] != NULL);
     aLen[iIdx] = 0;
 
     long rv = WelsCreateDecoder (&decoder[iIdx]);
     ASSERT_EQ (0, rv);
-    ASSERT_TRUE (decoder[iIdx] != NULL);
+    EXPECT_TRUE (decoder[iIdx] != NULL);
 
     SDecodingParam decParam;
     memset (&decParam, 0, sizeof (SDecodingParam));
@@ -3144,8 +3144,7 @@ TEST_F (EncodeDecodeTestAPI, SimulcastSVC) {
 
 TEST_F (EncodeDecodeTestAPI, SimulcastAVC) {
 //#define DEBUG_FILE_SAVE3
-#define LAYER_NUM (4)
-  int iSpatialLayerNum = WelsClip3 ((rand() % LAYER_NUM), 2, LAYER_NUM);
+  int iSpatialLayerNum = WelsClip3 ((rand() % MAX_SPATIAL_LAYER_NUM), 2, MAX_SPATIAL_LAYER_NUM);
   int iWidth       = WelsClip3 ((((rand() % MAX_WIDTH) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_WIDTH);
   int iHeight      = WelsClip3 ((((rand() % MAX_HEIGHT) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_HEIGHT);
   float fFrameRate = rand() + 0.5f;
@@ -3160,12 +3159,12 @@ TEST_F (EncodeDecodeTestAPI, SimulcastAVC) {
   int rv = encoder_->InitializeExt (&param_);
   ASSERT_TRUE (rv == cmResultSuccess);
 
-  unsigned char*  pBsBuf[LAYER_NUM];
-  int aLen[LAYER_NUM] = {0};
-  ISVCDecoder* decoder[LAYER_NUM];
+  unsigned char*  pBsBuf[MAX_SPATIAL_LAYER_NUM];
+  int aLen[MAX_SPATIAL_LAYER_NUM] = {0};
+  ISVCDecoder* decoder[MAX_SPATIAL_LAYER_NUM];
 
 #ifdef DEBUG_FILE_SAVE3
-  FILE* fEnc[LAYER_NUM];
+  FILE* fEnc[MAX_SPATIAL_LAYER_NUM];
   fEnc[0] = fopen ("enc0.264", "wb");
   fEnc[1] = fopen ("enc1.264", "wb");
   fEnc[2] = fopen ("enc2.264", "wb");
@@ -3177,11 +3176,12 @@ TEST_F (EncodeDecodeTestAPI, SimulcastAVC) {
   //create decoder
   for (iIdx = 0; iIdx < iSpatialLayerNum; iIdx++) {
     pBsBuf[iIdx] = static_cast<unsigned char*> (malloc (iWidth * iHeight * 3 * sizeof (unsigned char) / 2));
+    EXPECT_TRUE (pBsBuf[iIdx] != NULL);
     aLen[iIdx] = 0;
 
     long rv = WelsCreateDecoder (&decoder[iIdx]);
     ASSERT_EQ (0, rv);
-    ASSERT_TRUE (decoder[iIdx] != NULL);
+    EXPECT_TRUE (decoder[iIdx] != NULL);
 
     SDecodingParam decParam;
     memset (&decParam, 0, sizeof (SDecodingParam));
@@ -3262,14 +3262,14 @@ struct EncodeOptionParam {
 };
 
 static const EncodeOptionParam kOptionParamArray[] = {
-  {0, 30, 600, 460, 1, 400, 15.0, 1},
+  {0, 30, 600, 460, 1, 450, 15.0, 1},
   {1, 30, 340, 96, 24, 1000, 30.0, 1},
   {2, 30, 140, 196, 51, 500, 7.5, 1},
   {3, 30, 110, 296, 50, 500, 7.5, 1},
   {4, 30, 104, 416, 44, 500, 7.5, 1},
   {5, 30, 16, 16, 2, 500, 7.5, 1},
   {6, 30, 32, 16, 2, 500, 7.5, 1},
-  {7, 30, 600, 460, 1, 400, 15.0, 4},
+  {7, 30, 600, 460, 1, 450, 15.0, 4},
   {8, 30, 340, 96, 24, 1000, 30.0, 2},
   {9, 30, 140, 196, 51, 500, 7.5, 3},
   {10, 30, 110, 296, 50, 500, 7.5, 2},
