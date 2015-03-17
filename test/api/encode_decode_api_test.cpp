@@ -994,6 +994,7 @@ TEST_P (EncodeDecodeTestAPI, GetOptionLTR_ALLLTR) {
     m_LTR_Recover_Request.uiFeedbackType = LTR_RECOVERY_REQUEST;
     m_LTR_Recover_Request.iCurrentFrameNum = rand() % 2 == 1 ? -rand() % 10000 : rand() % 10000;
     m_LTR_Recover_Request.uiIDRPicId = rand() % 2 == 1 ? -rand() % 10000 : rand() % 10000;
+    m_LTR_Recover_Request.iLastCorrectFrameNum = rand() % 2 == 1 ? -rand() % 10000 : rand() % 10000;
     encoder_->SetOption (ENCODER_LTR_RECOVERY_REQUEST, &m_LTR_Recover_Request);
     m_LTR_Marking_Feedback.uiFeedbackType = rand() % 2 == 1 ? LTR_MARKING_SUCCESS : LTR_MARKING_FAILED;
     m_LTR_Marking_Feedback.uiIDRPicId = rand() % 2 == 1 ? -rand() % 10000 : rand() % 10000;
@@ -3397,7 +3398,7 @@ TEST_F (EncodeDecodeTestAPI, SimulcastAVC_SPS_PPS_LISTING) {
   int iIdx = 0;
 
   //create decoder
-  for (int iIdx = 0; iIdx < iSpatialLayerNum; iIdx++) {
+  for (iIdx = 0; iIdx < iSpatialLayerNum; iIdx++) {
     pBsBuf[iIdx] = static_cast<unsigned char*> (malloc (iWidth * iHeight * 3 * sizeof (unsigned char) / 2));
     EXPECT_TRUE (pBsBuf[iIdx] != NULL);
 
