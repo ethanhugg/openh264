@@ -10,6 +10,7 @@ before_install:
  - cd /usr/local/Library/
  - git checkout db83e50 /usr/local/Library/Formula/nasm.rb
  - brew install nasm
+ - cd -
 
 install:
   - make gmp-bootstrap
