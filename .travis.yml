@@ -5,8 +5,8 @@ compiler:
 
 before_install:
  - brew update
- - brew tap homebrew/versions
- - brew search nasm
+ - brew tap homebrew/boneyard
+ - brew versions nasm
  - brew install nasm
 
 install:
