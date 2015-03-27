@@ -5,6 +5,7 @@ compiler:
 
 before_install:
  - brew update
+ - brew tap homebrew/versions
  - brew search nasm
  - brew install nasm
 
