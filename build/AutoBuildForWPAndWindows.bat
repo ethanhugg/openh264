@@ -369,10 +369,10 @@ rem ***********************************************
 :Build
   set vConfiguration=%1
   cd  %RootDir%
-  echo bash -c "make OS=%vOSType%  ARCH=%vArcType% ENABLE64BIT=%vEnable64BitFlag% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration% clean"
-  echo bash -c "make OS=%vOSType%  ARCH=%vArcType% ENABLE64BIT=%vEnable64BitFlag% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration%"
-  bash -c "make OS=%vOSType%  ARCH=%vArcType% ENABLE64BIT=%vEnable64BitFlag% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration% clean"
-  bash -c "make OS=%vOSType%  ARCH=%vArcType% ENABLE64BIT=%vEnable64BitFlag% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration%"
+  echo bash -c "make OS=%vOSType%  ARCH=%vArcType% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration% clean"
+  echo bash -c "make OS=%vOSType%  ARCH=%vArcType% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration%"
+  bash -c "make OS=%vOSType%  ARCH=%vArcType% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration% clean"
+  bash -c "make OS=%vOSType%  ARCH=%vArcType% USE_ASM=%vASMFlag% BUILDTYPE=%vConfiguration%"
   if not %ERRORLEVEL%==0 (
     set BuildFlag=1
   )
@@ -383,9 +383,18 @@ goto :EOF
   set vConfiguration=%1
   set vBuildOption=%2
   cd %RootDir%
-  set FullDestDir=%BinDir%\%vArcType%-%vConfiguration%-ASM-%vASMFlag%
+  if "%vArcType%"=="arm" (
+    set vBinDirName=ARM
+  ) else if "%vArcType%"=="i386" (
+    set vBinDirName=Win32
+  ) else (
+    set vBinDirName=x64
+  )
+  set ArchDestDir=%BinDir%\%vBinDirName%
+  set FullDestDir=%BinDir%\%vBinDirName%\%vConfiguration%
   echo copying dll files to destination folder...
   echo FullDestDir is %FullDestDir%
+  if not exist %ArchDestDir% md %ArchDestDir%
   if exist %FullDestDir% (
     rd /s /q %FullDestDir%
   )
@@ -393,12 +402,11 @@ goto :EOF
 
   echo current dir is:
   cd
-  set DestDir=bin/%vArcType%-%vConfiguration%-ASM-%vASMFlag%
+  set DestDir=bin/%vBinDirName%/%vConfiguration%
   echo DestDir is %DestDir%
   if "%vOSType%"=="msvc-wp" (
      set aFileList=%DllFile% %LibFile% %PDBFile% %UTDllFile%
-  )
-  else (
+  ) else (
      set aFileList=%DllFile% %LibFile% %PDBFile% %UTBinFile% %EncBinFile% %DecBinFile%
   )
   for %%k in (%aFileList%) do (
