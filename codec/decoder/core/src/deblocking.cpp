@@ -279,7 +279,8 @@ void static inline DeblockingBSInsideMBNormal (PDqLayer pCurDqLayer, uint8_t nBS
 
 uint32_t DeblockingBsMarginalMBAvcbase (PDqLayer pCurDqLayer, int32_t iEdge, int32_t iNeighMb, int32_t iMbXy) {
   int32_t i, j;
-  uint8_t pBS[4];
+  uint32_t uiBSx4;
+  uint8_t* pBS = (uint8_t*) (&uiBSx4);
   const uint8_t* pBIdx      = &g_kuiTableBIdx[iEdge][0];
   const uint8_t* pBnIdx     = &g_kuiTableBIdx[iEdge][4];
   const uint8_t* pB8x8Idx   = &g_kuiTableB8x8Idx[iEdge][0];
@@ -348,7 +349,7 @@ uint32_t DeblockingBsMarginalMBAvcbase (PDqLayer pCurDqLayer, int32_t iEdge, int
     }
   }
 
-  return pBS[0] | (pBS[1] << 8) | (pBS[2] << 16) | (pBS[3] << 24);
+  return uiBSx4;
 }
 int32_t DeblockingAvailableNoInterlayer (PDqLayer pCurDqLayer, int32_t iFilterIdc) {
   int32_t iMbY = pCurDqLayer->iMbY;
@@ -862,11 +863,11 @@ void WelsDeblockingMb (PDqLayer pCurDqLayer, PDeblockingFilter  pFilter, int32_t
 }
 
 /*!
- * \brief	AVC slice deblocking filtering target layer
+ * \brief   AVC slice deblocking filtering target layer
  *
- * \param	dec			Wels avc decoder context
+ * \param   dec         Wels avc decoder context
  *
- * \return	NONE
+ * \return  NONE
  */
 void WelsDeblockingFilterSlice (PWelsDecoderContext pCtx, PDeblockingFilterMbFunc pDeblockMb) {
   PDqLayer pCurDqLayer = pCtx->pCurDqLayer;
@@ -931,12 +932,12 @@ void WelsDeblockingFilterSlice (PWelsDecoderContext pCtx, PDeblockingFilterMbFun
   }
 }
 /*!
- * \brief	deblocking module initialize
+ * \brief   deblocking module initialize
  *
- * \param	pf
+ * \param   pf
  *          cpu
  *
- * \return	NONE
+ * \return  NONE
  */
 
 void  DeblockingInit (SDeblockingFunc*  pFunc,  int32_t iCpu) {
