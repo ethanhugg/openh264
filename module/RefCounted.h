@@ -21,10 +21,6 @@
 #include <assert.h>
 #include "ClearKeyUtils.h"
 
-#if defined(_MSC_VER)
-#include <atomic>
-typedef std::atomic<uint32_t> AtomicRefCount;
-#else
 class AtomicRefCount {
 public:
   explicit AtomicRefCount(uint32_t aValue)
@@ -55,19 +51,18 @@ private:
   uint32_t mCount;
   GMPMutex* mMutex;
 };
-#endif
 
 // Note: Thread safe.
 class RefCounted {
 public:
   void AddRef() {
     ++mRefCount;
-    fprintf(stderr, "***ADDREF %d\n", mRefCount);
+    fprintf(stderr, "***ADDREF %d\n", (uint32_t) mRefCount);
   }
 
   uint32_t Release() {
     uint32_t newCount = --mRefCount;
-    fprintf(stderr, "***RELEASE %d\n", mRefCount);
+    fprintf(stderr, "***RELEASE %d\n", (uint32_t) mRefCount);
     if (!newCount) {
       delete this;
     }
@@ -83,7 +78,7 @@ protected:
   {
     assert(!mRefCount);
   }
-  int mRefCount; //AtomicRefCount mRefCount;
+  AtomicRefCount mRefCount;
 };
 
 template<class T>
