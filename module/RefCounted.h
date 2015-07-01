@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-GMPMutex* GMPCreateMutex();
+extern GMPPlatformAPI* g_platform_api;
 
 class AutoLock {
 public:
@@ -40,6 +40,13 @@ public:
 private:
   GMPMutex* mMutex;
 };
+
+GMPMutex* GMPCreateMutex() {
+  GMPMutex* mutex;
+  GMPErr err = g_platform_api->createmutex(&mutex);
+  assert(mutex);
+  return GMP_FAILED(err) ? nullptr : mutex;
+}
 
 class AtomicRefCount {
 public:

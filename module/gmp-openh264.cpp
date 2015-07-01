@@ -116,7 +116,7 @@ const char* kLogStrings[] = {
 };
 
 
-static GMPPlatformAPI* g_platform_api = nullptr;
+GMPPlatformAPI* g_platform_api = nullptr;
 
 class OpenH264VideoEncoder;
 
