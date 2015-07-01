@@ -53,8 +53,6 @@
 #include "codec_app_def.h"
 #include "codec_api.h"
 
-#include "task_utils.h"
-
 #if defined(_MSC_VER)
 #define PUBLIC_FUNC __declspec(dllexport)
 #else
@@ -90,6 +88,8 @@
 #if !defined (GMP_HAVE_NULLPTR)
 # define nullptr __null
 #endif
+
+#include "task_utils.h"
 
 static int g_log_level = 0;
 
