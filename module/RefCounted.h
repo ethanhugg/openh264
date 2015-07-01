@@ -22,6 +22,16 @@
 
 extern GMPPlatformAPI* g_platform_api;
 
+inline GMPMutex* GMPCreateMutex() {
+  GMPMutex* mutex;
+  if (!g_platform_api) {
+    return nullptr;
+  }
+  GMPErr err = g_platform_api->createmutex(&mutex);
+  assert(mutex);
+  return GMP_FAILED(err) ? nullptr : mutex;
+}
+
 class AutoLock {
 public:
   explicit AutoLock(GMPMutex* aMutex)
@@ -40,16 +50,6 @@ public:
 private:
   GMPMutex* mMutex;
 };
-
-GMPMutex* GMPCreateMutex() {
-  GMPMutex* mutex;
-  if (!g_platform_api) {
-    return nullptr;
-  }
-  GMPErr err = g_platform_api->createmutex(&mutex);
-  assert(mutex);
-  return GMP_FAILED(err) ? nullptr : mutex;
-}
 
 class AtomicRefCount {
 public:
