@@ -9,6 +9,27 @@ boilerplate = "/* This Source Code Form is subject to the terms of the Mozilla P
 
 includes = "#include \"RefCounted.h\"\n"
 
+refcountclass = "class RefCountTaskWrapper : public gmp_args_base {\n\
+public:\n\
+  RefCountTaskWrapper(GMPTask* aTask, RefCounted* aRefCounted)\n\
+    : mTask(aTask)\n\
+    , mRefCounted(aRefCounted)\n\
+  {}\n\
+  virtual void Run() {\n\
+    mTask->Run();\n\
+  }\n\
+  virtual void Destroy() {\n\
+    mTask->Destroy();\n\
+    gmp_args_base::Destroy();\n\
+  }\n\
+private:\n\
+  ~RefCountTaskWrapper() {}\n\
+\n\
+  GMPTask* mTask;\n\
+  RefPtr<RefCounted> mRefCounted;\n\
+};\n"
+
+
 def gen_args_type(args, member):
     if member:
         ret = ["C o"]
@@ -132,6 +153,14 @@ def generate_function_template(args, member):
     print "    (" + gen_args(args, member) + ");"
     print "}"
     print
+    if member:
+        print "template<" + gen_typenames(args, member) + ">"
+        print "GMPTask*"
+        print "WrapTaskRefCounted%s ("%NM + gen_args_type(args, member) + ") {"
+        print "  GMPTask *t = WrapTask%s ("%NM + gen_args(args, member) + ");"
+        print "  return new RefCountTaskWrapper(t, o);"
+        print "}"
+        print
 
 def generate_function_template_ret(args, member):
     if member:
@@ -149,37 +178,12 @@ def generate_function_template_ret(args, member):
     print
 
 
-refcountclass = "class RefCountTaskWrapper : public gmp_args_base {\n\
-public:\n\
-  RefCountTaskWrapper(GMPTask* aTask, RefCounted* aRefCounted)\n\
-    : mTask(aTask)\n\
-    , mRefCounted(aRefCounted)\n\
-  {}\n\
-  virtual void Run() {\n\
-    mTask->Run();\n\
-  }\n\
-  virtual void Destroy() {\n\
-    mTask->Destroy();\n\
-    gmp_args_base::Destroy();\n\
-  }\n\
-private:\n\
-  ~RefCountTaskWrapper() {}\n\
-\n\
-  GMPTask* mTask;\n\
-  RefPtr<RefCounted> mRefCounted;\n\
-};\n\
-\n\
-template<typename Type, typename Method, typename... Args>\n\
-GMPTask*\n\
-WrapTaskRefCounted(Type* aType, Method aMethod, Args... args)\n\
-{\n\
-  GMPTask* t = WrapTask(aType, aMethod, args...);\n\
-  return new RefCountTaskWrapper(t, aType);\n\
-}\n"
 
 print boilerplate
 print
 print includes
+print
+print refcountclass
 print
 
 for num_args in range (0, MAX_ARGS):
@@ -199,6 +203,5 @@ for num_args in range(0, MAX_ARGS):
     generate_function_template(num_args, True)
     generate_function_template_ret(num_args, True)
 
-print refcountclass
 
 

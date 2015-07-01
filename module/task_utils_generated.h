@@ -6,6 +6,27 @@
 #include "RefCounted.h"
 
 
+class RefCountTaskWrapper : public gmp_args_base {
+public:
+  RefCountTaskWrapper(GMPTask* aTask, RefCounted* aRefCounted)
+    : mTask(aTask)
+    , mRefCounted(aRefCounted)
+  {}
+  virtual void Run() {
+    mTask->Run();
+  }
+  virtual void Destroy() {
+    mTask->Destroy();
+    gmp_args_base::Destroy();
+  }
+private:
+  ~RefCountTaskWrapper() {}
+
+  GMPTask* mTask;
+  RefPtr<RefCounted> mRefCounted;
+};
+
+
 // 0 arguments --
 template<typename M> class gmp_args_nm_0 : public gmp_args_base {
  public:
@@ -1560,6 +1581,13 @@ gmp_args_m_0<C, M>* WrapTask (C o, M m) {
     (o, m);
 }
 
+template<typename C, typename M>
+GMPTask*
+WrapTaskRefCounted (C o, M m) {
+  GMPTask *t = WrapTask (o, m);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 0 arguments --
 template<typename C, typename M, typename R>
 gmp_args_m_0_ret<C, M, R>* WrapTaskRet (C o, M m, R* r) {
@@ -1586,6 +1614,13 @@ template<typename C, typename M, typename A0>
 gmp_args_m_1<C, M, A0>* WrapTask (C o, M m, A0 a0) {
   return new gmp_args_m_1<C, M, A0>
     (o, m, a0);
+}
+
+template<typename C, typename M, typename A0>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0) {
+  GMPTask *t = WrapTask (o, m, a0);
+  return new RefCountTaskWrapper(t, o);
 }
 
 // 1 arguments --
@@ -1616,6 +1651,13 @@ gmp_args_m_2<C, M, A0, A1>* WrapTask (C o, M m, A0 a0, A1 a1) {
     (o, m, a0, a1);
 }
 
+template<typename C, typename M, typename A0, typename A1>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1) {
+  GMPTask *t = WrapTask (o, m, a0, a1);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 2 arguments --
 template<typename C, typename M, typename A0, typename A1, typename R>
 gmp_args_m_2_ret<C, M, A0, A1, R>* WrapTaskRet (C o, M m, A0 a0, A1 a1, R* r) {
@@ -1642,6 +1684,13 @@ template<typename C, typename M, typename A0, typename A1, typename A2>
 gmp_args_m_3<C, M, A0, A1, A2>* WrapTask (C o, M m, A0 a0, A1 a1, A2 a2) {
   return new gmp_args_m_3<C, M, A0, A1, A2>
     (o, m, a0, a1, a2);
+}
+
+template<typename C, typename M, typename A0, typename A1, typename A2>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2);
+  return new RefCountTaskWrapper(t, o);
 }
 
 // 3 arguments --
@@ -1672,6 +1721,13 @@ gmp_args_m_4<C, M, A0, A1, A2, A3>* WrapTask (C o, M m, A0 a0, A1 a1, A2 a2, A3 
     (o, m, a0, a1, a2, a3);
 }
 
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 4 arguments --
 template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename R>
 gmp_args_m_4_ret<C, M, A0, A1, A2, A3, R>* WrapTaskRet (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, R* r) {
@@ -1698,6 +1754,13 @@ template<typename C, typename M, typename A0, typename A1, typename A2, typename
 gmp_args_m_5<C, M, A0, A1, A2, A3, A4>* WrapTask (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) {
   return new gmp_args_m_5<C, M, A0, A1, A2, A3, A4>
     (o, m, a0, a1, a2, a3, a4);
+}
+
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4);
+  return new RefCountTaskWrapper(t, o);
 }
 
 // 5 arguments --
@@ -1728,6 +1791,13 @@ gmp_args_m_6<C, M, A0, A1, A2, A3, A4, A5>* WrapTask (C o, M m, A0 a0, A1 a1, A2
     (o, m, a0, a1, a2, a3, a4, a5);
 }
 
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 6 arguments --
 template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename R>
 gmp_args_m_6_ret<C, M, A0, A1, A2, A3, A4, A5, R>* WrapTaskRet (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, R* r) {
@@ -1754,6 +1824,13 @@ template<typename C, typename M, typename A0, typename A1, typename A2, typename
 gmp_args_m_7<C, M, A0, A1, A2, A3, A4, A5, A6>* WrapTask (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6) {
   return new gmp_args_m_7<C, M, A0, A1, A2, A3, A4, A5, A6>
     (o, m, a0, a1, a2, a3, a4, a5, a6);
+}
+
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6);
+  return new RefCountTaskWrapper(t, o);
 }
 
 // 7 arguments --
@@ -1784,6 +1861,13 @@ gmp_args_m_8<C, M, A0, A1, A2, A3, A4, A5, A6, A7>* WrapTask (C o, M m, A0 a0, A
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7);
 }
 
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6, a7);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 8 arguments --
 template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename R>
 gmp_args_m_8_ret<C, M, A0, A1, A2, A3, A4, A5, A6, A7, R>* WrapTaskRet (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, R* r) {
@@ -1810,6 +1894,13 @@ template<typename C, typename M, typename A0, typename A1, typename A2, typename
 gmp_args_m_9<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8>* WrapTask (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8) {
   return new gmp_args_m_9<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8>
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8);
+  return new RefCountTaskWrapper(t, o);
 }
 
 // 9 arguments --
@@ -1840,6 +1931,13 @@ gmp_args_m_10<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>* WrapTask (C o, M m,
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 }
 
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 10 arguments --
 template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename R>
 gmp_args_m_10_ret<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>* WrapTaskRet (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, R* r) {
@@ -1866,6 +1964,13 @@ template<typename C, typename M, typename A0, typename A1, typename A2, typename
 gmp_args_m_11<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>* WrapTask (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10) {
   return new gmp_args_m_11<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+}
+
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+  return new RefCountTaskWrapper(t, o);
 }
 
 // 11 arguments --
@@ -1896,6 +2001,13 @@ gmp_args_m_12<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11>* WrapTask 
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
 }
 
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 12 arguments --
 template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename R>
 gmp_args_m_12_ret<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R>* WrapTaskRet (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, R* r) {
@@ -1922,6 +2034,13 @@ template<typename C, typename M, typename A0, typename A1, typename A2, typename
 gmp_args_m_13<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12>* WrapTask (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12) {
   return new gmp_args_m_13<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12>
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+}
+
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+  return new RefCountTaskWrapper(t, o);
 }
 
 // 13 arguments --
@@ -1952,38 +2071,17 @@ gmp_args_m_14<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13>*
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13);
 }
 
+template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13>
+GMPTask*
+WrapTaskRefCounted (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13) {
+  GMPTask *t = WrapTask (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13);
+  return new RefCountTaskWrapper(t, o);
+}
+
 // 14 arguments --
 template<typename C, typename M, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename R>
 gmp_args_m_14_ret<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R>* WrapTaskRet (C o, M m, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, R* r) {
   return new gmp_args_m_14_ret<C, M, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R>
     (o, m, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, r);
-}
-
-class RefCountTaskWrapper : public gmp_args_base {
-public:
-  RefCountTaskWrapper(GMPTask* aTask, RefCounted* aRefCounted)
-    : mTask(aTask)
-    , mRefCounted(aRefCounted)
-  {}
-  virtual void Run() {
-    mTask->Run();
-  }
-  virtual void Destroy() {
-    mTask->Destroy();
-    gmp_args_base::Destroy();
-  }
-private:
-  ~RefCountTaskWrapper() {}
-
-  GMPTask* mTask;
-  RefPtr<RefCounted> mRefCounted;
-};
-
-template<typename Type, typename Method, typename... Args>
-GMPTask*
-WrapTaskRefCounted(Type* aType, Method aMethod, Args... args)
-{
-  GMPTask* t = WrapTask(aType, aMethod, args...);
-  return new RefCountTaskWrapper(t, aType);
 }
 

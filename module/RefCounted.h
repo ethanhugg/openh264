@@ -57,12 +57,10 @@ class RefCounted {
 public:
   void AddRef() {
     ++mRefCount;
-    fprintf(stderr, "***ADDREF %d\n", (uint32_t) mRefCount);
   }
 
   uint32_t Release() {
     uint32_t newCount = --mRefCount;
-    fprintf(stderr, "***RELEASE %d\n", (uint32_t) mRefCount);
     if (!newCount) {
       delete this;
     }
