@@ -43,6 +43,9 @@ private:
 
 GMPMutex* GMPCreateMutex() {
   GMPMutex* mutex;
+  if (!g_platform_api) {
+    return nullptr;
+  }
   GMPErr err = g_platform_api->createmutex(&mutex);
   assert(mutex);
   return GMP_FAILED(err) ? nullptr : mutex;
