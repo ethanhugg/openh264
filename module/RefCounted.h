@@ -19,7 +19,27 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include "ClearKeyUtils.h"
+
+GMPMutex* GMPCreateMutex();
+
+class AutoLock {
+public:
+  explicit AutoLock(GMPMutex* aMutex)
+    : mMutex(aMutex)
+  {
+    assert(aMutex);
+    if (mMutex) {
+      mMutex->Acquire();
+    }
+  }
+  ~AutoLock() {
+    if (mMutex) {
+      mMutex->Release();
+    }
+  }
+private:
+  GMPMutex* mMutex;
+};
 
 class AtomicRefCount {
 public:
