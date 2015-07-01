@@ -62,10 +62,12 @@ class RefCounted {
 public:
   void AddRef() {
     ++mRefCount;
+    fprintf(stderr, "***ADDREF %d\n", mRefCount);
   }
 
   uint32_t Release() {
     uint32_t newCount = --mRefCount;
+    fprintf(stderr, "***RELEASE %d\n", mRefCount);
     if (!newCount) {
       delete this;
     }
@@ -81,7 +83,7 @@ protected:
   {
     assert(!mRefCount);
   }
-  AtomicRefCount mRefCount;
+  int mRefCount; //AtomicRefCount mRefCount;
 };
 
 template<class T>
