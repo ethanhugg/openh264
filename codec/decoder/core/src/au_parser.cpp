@@ -440,19 +440,13 @@ bool CheckAccessUnitBoundaryExt (PNalUnitHeaderExt pLastNalHdrExt, PNalUnitHeade
   }
 
   // Subclause 7.4.1.2.5
-  if (pLastSliceHeader->iRedundantPicCnt < pCurSliceHeader->iRedundantPicCnt)
-    return false;
-  else if (pLastSliceHeader->iRedundantPicCnt > pCurSliceHeader->iRedundantPicCnt)
+  if (pLastSliceHeader->iRedundantPicCnt > pCurSliceHeader->iRedundantPicCnt)
     return true;
 
   // Subclause G7.4.1.2.4
-  if (pLastNalHdrExt->uiDependencyId < pCurNalHeaderExt->uiDependencyId)
-    return false;
-  else if (pLastNalHdrExt->uiDependencyId > pCurNalHeaderExt->uiDependencyId)
+  if (pLastNalHdrExt->uiDependencyId > pCurNalHeaderExt->uiDependencyId)
     return true;
-  if (pLastNalHdrExt->uiQualityId < pCurNalHeaderExt->uiQualityId)
-    return false;
-  else if (pLastNalHdrExt->uiQualityId > pCurNalHeaderExt->uiQualityId)
+  if (pLastNalHdrExt->uiQualityId > pCurNalHeaderExt->uiQualityId)
     return true;
 
   // Subclause 7.4.1.2.4
@@ -1045,7 +1039,8 @@ int32_t ParseSps (PWelsDecoderContext pCtx, PBitStringAux pBsAux, int32_t* pPicW
     return  GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_INVALID_MAX_MB_SIZE);
   }
   if (((uint64_t)pSps->iMbWidth * (uint64_t)pSps->iMbWidth) > (uint64_t) (8 * pSLevelLimits->uiMaxFS)) {
-    WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING, " the pic_width_in_mbs exceeds the level limits!");
+    WelsLog (& (pCtx->sLogCtx), WELS_LOG_ERROR, " the pic_width_in_mbs exceeds the level limits!");
+    return GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_INVALID_MAX_MB_SIZE);
   }
   WELS_READ_VERIFY (BsGetUe (pBs, &uiCode)); //pic_height_in_map_units_minus1
   pSps->iMbHeight = PIC_HEIGHT_IN_MAP_UNITS_OFFSET + uiCode;
@@ -1054,7 +1049,8 @@ int32_t ParseSps (PWelsDecoderContext pCtx, PBitStringAux pBsAux, int32_t* pPicW
     return  GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_INVALID_MAX_MB_SIZE);
   }
   if (((uint64_t)pSps->iMbHeight * (uint64_t)pSps->iMbHeight) > (uint64_t) (8 * pSLevelLimits->uiMaxFS)) {
-    WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING, " the pic_height_in_mbs exceeds the level limits!");
+    WelsLog (& (pCtx->sLogCtx), WELS_LOG_ERROR, " the pic_height_in_mbs exceeds the level limits!");
+    return GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_INVALID_MAX_MB_SIZE);
   }
   uint32_t uiTmp32 = pSps->iMbWidth * pSps->iMbHeight;
   if (uiTmp32 > (uint32_t)pSLevelLimits->uiMaxFS) {
